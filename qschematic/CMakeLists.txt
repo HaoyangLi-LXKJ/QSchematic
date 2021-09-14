@@ -87,12 +87,12 @@ set(HEADERS_PUBLIC
 
 # Add the wire system
 add_subdirectory(wire_system)
-
+add_subdirectory(gpds)
 # Setup target names
 set(TARGET_BASE_NAME "qschematic")
 set(TARGET_OBJS      ${TARGET_BASE_NAME}-objs)
 set(TARGET_STATIC    ${TARGET_BASE_NAME}-static)
-set(TARGET_SHARED    ${TARGET_BASE_NAME}-shared)
+# set(TARGET_SHARED    ${TARGET_BASE_NAME}-shared)
 
 # This function sets stuff up common to all targets
 function(setup_target_common target)
@@ -167,8 +167,8 @@ setup_target_common(${TARGET_OBJS})
 # Shared library                                                               #
 ################################################################################
 
-add_library(${TARGET_SHARED} SHARED)
-setup_target_common(${TARGET_SHARED})
+# add_library(${TARGET_SHARED} SHARED)
+# setup_target_common(${TARGET_SHARED})
 
 
 ################################################################################
@@ -211,11 +211,11 @@ install(
     TARGETS
         ${TARGET_OBJS}
         ${TARGET_STATIC}
-        ${TARGET_SHARED}
+        # ${TARGET_SHARED}
     EXPORT qschematic-targets
     LIBRARY
         DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        COMPONENT lib
+        COMPONENT lib5
     ARCHIVE
         DESTINATION ${CMAKE_INSTALL_LIBDIR}
         COMPONENT lib

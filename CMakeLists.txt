@@ -5,7 +5,7 @@ project(qschematic)
 
 # User options
 option(QSCHEMATIC_BUILD_DEMO "Whether to build the demo project" ON)
-option(QSCHEMATIC_DEPENDENCY_GPDS_DOWNLOAD "Whether to pull the GPDS dependency via FetchContent" ON)
+option(QSCHEMATIC_DEPENDENCY_GPDS_DOWNLOAD "Whether to pull the GPDS dependency via FetchContent" OFF)
 
 # User settings
 set(QSCHEMATIC_DEPENDENCY_GPDS_TARGET "gpds-static" CACHE STRING "The CMake target of the GPDS library to use")
@@ -16,7 +16,7 @@ add_subdirectory(qschematic)
 
 # Include the example(s)
 if (QSCHEMATIC_BUILD_DEMO)
-    add_subdirectory(demo EXCLUDE_FROM_ALL)
+    add_subdirectory(demo)
 endif()
 
 # Print options

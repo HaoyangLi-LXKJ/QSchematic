@@ -23,7 +23,7 @@ set(RESOURCES
 
 # Define a target name
 set(TARGET qschematic-demo)
-
+message("hahahahahahah")
 # Create executable
 add_executable(${TARGET})
 

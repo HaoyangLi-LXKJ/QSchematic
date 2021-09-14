@@ -16,6 +16,12 @@ if (QSCHEMATIC_DEPENDENCY_GPDS_DOWNLOAD)
     endif()
 endif()
 
+# if(NOT gpds_POPULATED)
+# FetchContent_Populate(gpds)
+# set(GPDS_BUILD_TESTS OFF CACHE INTERNAL "")
+# set(GPDS_BUILD_EXAMPLES OFF CACHE INTERNAL "")
+# endif()
+
 # Qt5
 find_package(
     Qt5
