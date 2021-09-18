@@ -57,7 +57,7 @@ void Model::createModel()
     addTreeItem("Demo 1", QIcon(), new ::OperationDemo1, rootOperations);
 
     // Flows
-    addTreeItem("Start", QIcon(), new ::FlowStart, rootFlows);
+    addTreeItem("Start", QIcon(":/mode_wire.svg"), new ::FlowStart, rootFlows);
     addTreeItem("End", QIcon(), new ::FlowEnd, rootFlows);
 
     // Basics
