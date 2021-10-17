@@ -159,7 +159,7 @@ void View::mouseMoveEvent(QMouseEvent* event)
 
 void View::mousePressEvent(QMouseEvent* event)
 {
-  if (event->button() == Qt::RightButton)
+  if (event->button() == Qt::MiddleButton)
   {
     setMode(PanMode);
     _panStart = event->pos();
@@ -173,7 +173,7 @@ void View::mousePressEvent(QMouseEvent* event)
 
 void View::mouseReleaseEvent(QMouseEvent* event)
 {
-  if (event->button() == Qt::RightButton)
+  if (event->button() == Qt::MiddleButton)
   {
     setMode(NormalMode);
     viewport()->setCursor(Qt::ArrowCursor);
