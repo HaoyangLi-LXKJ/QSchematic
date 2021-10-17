@@ -15,237 +15,272 @@ const qreal FIT_ALL_PADDING   = 20.00;
 using namespace QSchematic;
 
 View::View(QWidget* parent) :
-    QGraphicsView(parent),
-    _scene(nullptr),
-    _scaleFactor(1.0),
-    _mode(NormalMode)
+  QGraphicsView(parent),
+  _scene(nullptr),
+  _scaleFactor(1.0),
+  _mode(NormalMode)
 {
-    // Scroll bars
-    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  // Scroll bars
+  setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 
-    // Interaction stuff
-    setMouseTracking(true);
-    setAcceptDrops(true);
-    setDragMode(QGraphicsView::RubberBandDrag);
+  // Interaction stuff
+  setMouseTracking(true);
+  setAcceptDrops(true);
+  setDragMode(QGraphicsView::RubberBandDrag);
 
-    // Rendering options
-    setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+  // Rendering options
+  setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
 }
 
 void View::keyPressEvent(QKeyEvent* event)
 {
-    // Something with CTRL held down?
-    if (event->modifiers() & Qt::ControlModifier) {
+  // Something with CTRL held down?
+  if (event->modifiers() & Qt::ControlModifier)
+  {
 
-        switch (event->key()) {
-        case Qt::Key_Plus:
-            _scaleFactor += ZOOM_FACTOR_STEPS;
-            updateScale();
-            return;
-
-        case Qt::Key_Minus:
-            _scaleFactor -= ZOOM_FACTOR_STEPS;
-            updateScale();
-            return;
-
-        case Qt::Key_0:
-            _scaleFactor = 1.0;
-            updateScale();
-            return;
-
-        case Qt::Key_W:
-            if (_scene) {
-                _scene->setMode(Scene::WireMode);
-            }
-            return;
-
-        case Qt::Key_Space:
-            if (_scene) {
-                _scene->toggleWirePosture();
-            }
-            return;
-
-        default:
-            break;
-        }
-    }
-
-    // Just a key alone?
-    switch (event->key()) {
-    case Qt::Key_Escape:
-        if (_scene) {
-            _scene->setMode(Scene::NormalMode);
-        }
+    switch (event->key())
+    {
+      case Qt::Key_Plus:
+        _scaleFactor += ZOOM_FACTOR_STEPS;
+        updateScale();
         return;
 
-    case Qt::Key_Delete:
-        if (_scene) {
-            if (_scene->mode() == Scene::NormalMode) {
-                for (auto item : _scene->selectedTopLevelItems()) {
-                    _scene->undoStack()->push(new CommandItemRemove(_scene, item));
-                }
-            } else {
-                _scene->removeLastWirePoint();
-            }
-        }
+      case Qt::Key_Minus:
+        _scaleFactor -= ZOOM_FACTOR_STEPS;
+        updateScale();
         return;
 
-    case Qt::Key_Backspace:
-        if (_scene && _scene->mode() == Scene::WireMode) {
-            _scene->removeLastWirePoint();
-        }
+      case Qt::Key_0:
+        _scaleFactor = 1.0;
+        updateScale();
         return;
 
-    default:
+      case Qt::Key_W:
+        if (_scene)
+        {
+          _scene->setMode(Scene::WireMode);
+        }
+
+        return;
+
+      case Qt::Key_Space:
+        if (_scene)
+        {
+          _scene->toggleWirePosture();
+        }
+
+        return;
+
+      default:
         break;
     }
+  }
 
-    // Fall back
-    QGraphicsView::keyPressEvent(event);
+  // Just a key alone?
+  switch (event->key())
+  {
+    case Qt::Key_Escape:
+      if (_scene)
+      {
+        _scene->setMode(Scene::NormalMode);
+      }
+
+      return;
+
+    case Qt::Key_Delete:
+      if (_scene)
+      {
+        if (_scene->mode() == Scene::NormalMode)
+        {
+          for (auto item : _scene->selectedTopLevelItems())
+          {
+            _scene->undoStack()->push(new CommandItemRemove(_scene, item));
+          }
+        }
+        else
+        {
+          _scene->removeLastWirePoint();
+        }
+      }
+
+      return;
+
+    case Qt::Key_Backspace:
+      if (_scene && _scene->mode() == Scene::WireMode)
+      {
+        _scene->removeLastWirePoint();
+      }
+
+      return;
+
+    default:
+      break;
+  }
+
+  // Fall back
+  QGraphicsView::keyPressEvent(event);
 }
 
 void View::wheelEvent(QWheelEvent* event)
 {
-    if (event->modifiers() & Qt::ControlModifier) {
-        if (event->angleDelta().y() > 0 && _scaleFactor < ZOOM_FACTOR_MAX) {
-            _scaleFactor += ZOOM_FACTOR_STEPS;
-        } else if (event->angleDelta().y() < 0 && _scaleFactor > ZOOM_FACTOR_MIN) {
-            _scaleFactor -= ZOOM_FACTOR_STEPS;
-        }
-
-        updateScale();
+  if (event->modifiers() & Qt::ControlModifier)
+  {
+    if (event->angleDelta().y() > 0 && _scaleFactor < ZOOM_FACTOR_MAX)
+    {
+      _scaleFactor += ZOOM_FACTOR_STEPS;
     }
+    else if (event->angleDelta().y() < 0 && _scaleFactor > ZOOM_FACTOR_MIN)
+    {
+      _scaleFactor -= ZOOM_FACTOR_STEPS;
+    }
+
+    updateScale();
+  }
 }
 
-void View::mouseMoveEvent(QMouseEvent *event)
+void View::mouseMoveEvent(QMouseEvent* event)
 {
-    QGraphicsView::mouseMoveEvent(event);
+  QGraphicsView::mouseMoveEvent(event);
 
-    switch (_mode) {
+  switch (_mode)
+  {
     case NormalMode:
-        break;
+      break;
 
     case PanMode:
-        horizontalScrollBar()->setValue(horizontalScrollBar()->value() - (event->x() - _panStart.x()));
-        verticalScrollBar()->setValue(verticalScrollBar()->value() - (event->y() - _panStart.y()));
-        _panStart = event->pos();
-        event->accept();
-        return;
-    }
+      horizontalScrollBar()->setValue(horizontalScrollBar()->value() - (event->x() - _panStart.x()));
+      verticalScrollBar()->setValue(verticalScrollBar()->value() - (event->y() - _panStart.y()));
+      _panStart = event->pos();
+      event->accept();
+      return;
+  }
 }
 
-void View::mousePressEvent(QMouseEvent *event)
+void View::mousePressEvent(QMouseEvent* event)
 {
-    if (event->button() == Qt::MiddleButton) {
-        setMode(PanMode);
-        _panStart = event->pos();
-        viewport()->setCursor(Qt::ClosedHandCursor);
-        event->accept();
-        return;
-    }
+  if (event->button() == Qt::LeftButton)
+  {
+    setMode(PanMode);
+    _panStart = event->pos();
+    viewport()->setCursor(Qt::ClosedHandCursor);
+    event->accept();
+    return;
+  }
 
-    QGraphicsView::mousePressEvent(event);
+  QGraphicsView::mousePressEvent(event);
 }
 
-void View::mouseReleaseEvent(QMouseEvent *event)
+void View::mouseReleaseEvent(QMouseEvent* event)
 {
-    if (event->button() == Qt::MiddleButton) {
-        setMode(NormalMode);
-        viewport()->setCursor(Qt::ArrowCursor);
-        event->accept();
-        return;
-    }
+  if (event->button() == Qt::LeftButton)
+  {
+    setMode(NormalMode);
+    viewport()->setCursor(Qt::ArrowCursor);
+    event->accept();
+    return;
+  }
 
-    QGraphicsView::mouseReleaseEvent(event);
+  QGraphicsView::mouseReleaseEvent(event);
 }
 
 void View::setScene(Scene* scene)
 {
-    if (scene) {
-        connect(scene, &Scene::modeChanged, [this](int newMode){
-            switch (newMode) {
-            case Scene::NormalMode:
-                viewport()->setCursor(Qt::ArrowCursor);
-                break;
+  if (scene)
+  {
+    connect(scene, &Scene::modeChanged, [this](int newMode)
+    {
+      switch (newMode)
+      {
+        case Scene::NormalMode:
+          viewport()->setCursor(Qt::ArrowCursor);
+          break;
 
-            case Scene::WireMode:
-                viewport()->setCursor(Qt::CrossCursor);
-                break;
+        case Scene::WireMode:
+          viewport()->setCursor(Qt::CrossCursor);
+          break;
 
-            default:
-                break;
-            }
-        });
-    }
+        default:
+          break;
+      }
+    });
+  }
 
-    QGraphicsView::setScene(scene);
+  QGraphicsView::setScene(scene);
 
-    _scene = scene;
+  _scene = scene;
 }
 
 void View::setSettings(const Settings& settings)
 {
-    _settings = settings;
+  _settings = settings;
 
-    // Rendering options
-    setRenderHint(QPainter::Antialiasing, _settings.antialiasing);
+  // Rendering options
+  setRenderHint(QPainter::Antialiasing, _settings.antialiasing);
 }
 
 void View::setZoomValue(qreal factor)
 {
-    _scaleFactor = factor;
+  _scaleFactor = factor;
 
-    updateScale();
+  updateScale();
 }
 
 void View::updateScale()
 {
-    // Apply the new scale
-    setTransform(QTransform::fromScale(_scaleFactor, _scaleFactor));
+  // Apply the new scale
+  setTransform(QTransform::fromScale(_scaleFactor, _scaleFactor));
 
-    emit zoomChanged(_scaleFactor);
+  emit zoomChanged(_scaleFactor);
 }
 
 void View::setMode(Mode newMode)
 {
-    _mode = newMode;
+  _mode = newMode;
 
-    emit modeChanged(_mode);
+  emit modeChanged(_mode);
 }
 
 qreal View::zoomValue() const
 {
-    return _scaleFactor;
+  return _scaleFactor;
 }
 
 void View::fitInView()
 {
-    // Check if there is a scene
-    if (!_scene) {
-        return;
-    }
+  // Check if there is a scene
+  if (!_scene)
+  {
+    return;
+  }
 
-    // Find the combined bounding rect of all the items
-    QRectF rect;
-    for (const auto& item : _scene->QGraphicsScene::items()) {
-        QRectF boundingRect = item->boundingRect();
-        boundingRect.moveTo(item->scenePos());
-        rect = rect.united(boundingRect);
-    }
+  // Find the combined bounding rect of all the items
+  QRectF rect;
 
-    // Add some padding
-    const auto& adj = std::max(0.0, FIT_ALL_PADDING);
-    rect.adjust(-adj, -adj, adj, adj);
+  for (const auto& item : _scene->QGraphicsScene::items())
+  {
+    QRectF boundingRect = item->boundingRect();
+    boundingRect.moveTo(item->scenePos());
+    rect = rect.united(boundingRect);
+  }
 
-    // Update and cap the scale factor
-    qreal currentScaleFactor = _scaleFactor;
-    QGraphicsView::fitInView(rect, Qt::KeepAspectRatio);
-    _scaleFactor = viewport()->geometry().width() / mapToScene(viewport()->geometry()).boundingRect().width();
-    if (currentScaleFactor < 1) {
-        _scaleFactor = std::min(_scaleFactor, 1.0);
-    } else {
-        _scaleFactor = std::min(_scaleFactor, currentScaleFactor);
-    }
-    updateScale();
+  // Add some padding
+  const auto& adj = std::max(0.0, FIT_ALL_PADDING);
+  rect.adjust(-adj, -adj, adj, adj);
+
+  // Update and cap the scale factor
+  qreal currentScaleFactor = _scaleFactor;
+  QGraphicsView::fitInView(rect, Qt::KeepAspectRatio);
+  _scaleFactor = viewport()->geometry().width() / mapToScene(viewport()->geometry()).boundingRect().width();
+
+  if (currentScaleFactor < 1)
+  {
+    _scaleFactor = std::min(_scaleFactor, 1.0);
+  }
+  else
+  {
+    _scaleFactor = std::min(_scaleFactor, currentScaleFactor);
+  }
+
+  updateScale();
 }
