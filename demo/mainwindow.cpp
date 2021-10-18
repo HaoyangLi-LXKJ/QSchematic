@@ -78,8 +78,6 @@ MainWindow::MainWindow(QWidget* parent)
   _view = new QSchematic::View;
   _view->setSettings(_settings);
   _view->setScene(_scene);
-  _scene->setBackgroundColor(Qt::blue);
-  _scene->setGridColor(Qt::red);
   // Item library
   _itemLibraryWidget = new Library::Widget(this);
   connect(_view, &QSchematic::View::zoomChanged, _itemLibraryWidget, &Library::Widget::setPixmapScale);
