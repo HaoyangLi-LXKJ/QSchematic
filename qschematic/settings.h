@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <QtCore/qglobal.h>
 
 class QPoint;
 class QPointF;
@@ -8,6 +9,7 @@ class QRectF;
 class QVector2D;
 class QSize;
 class QSizeF;
+class QColor;
 
 namespace QSchematic {
 

@@ -23,11 +23,13 @@ set(SOURCES_PRIVATE
     commands/commandnoderotate.cpp
     commands/commandwirenetrename.cpp
     commands/commandwirepointmove.cpp
+    commands/FlexLabelCommands.cpp
     items/connector.cpp
     items/item.cpp
     items/itemfactory.cpp
     items/itemmimedata.cpp
     items/label.cpp
+    items/FlexLabel.cpp
     items/node.cpp
     items/splinewire.cpp
     items/wire.cpp
@@ -57,12 +59,14 @@ set(HEADERS_PUBLIC
     commands/commands.h
     commands/commandwirenetrename.h
     commands/commandwirepointmove.h
+    commands/FlexLabelCommands.h
     items/itemfunctions.h
     items/connector.h
     items/item.h
     items/itemfactory.h
     items/itemmimedata.h
     items/label.h
+    items/FlexLabel.h
     items/node.h
     items/splinewire.h
     items/wire.h

@@ -31,6 +31,7 @@ public:
     WireRoundedCornersType,
     ConnectorType,
     LabelType,
+    FlexLabelType,
     SplineWireType,
     QSchematicItemUserType = QGraphicsItem::UserType + 100
   };
