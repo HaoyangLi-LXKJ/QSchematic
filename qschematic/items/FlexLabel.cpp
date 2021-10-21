@@ -26,14 +26,14 @@ gpds::container FlexLabel::to_container() const
   // Root
   gpds::container root;
   addItemTypeIdToContainer(root);
-  root.add_value("flex_label", QSchematic::Label::to_container());
+  root.add_value("label", QSchematic::Label::to_container());
   return root;
 }
 
 void FlexLabel::from_container(const gpds::container& container)
 {
   // Root
-  QSchematic::Label::from_container(*container.get_value<gpds::container*>("flex_label").value());
+  QSchematic::Label::from_container(*container.get_value<gpds::container*>("label").value());
 }
 
 std::shared_ptr<QSchematic::Item> FlexLabel::deepCopy() const

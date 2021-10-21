@@ -22,7 +22,7 @@ public:
   void changeFontSize(int size);
 
   void changeFontColor(QColor color);
-  static const int MAX_FONT_SIZE = 200;
+  static const int MAX_FONT_SIZE = 400;
 
 protected:
   void copyAttributes(FlexLabel& dest) const;
