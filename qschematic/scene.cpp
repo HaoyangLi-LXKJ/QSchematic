@@ -62,6 +62,8 @@ gpds::container Scene::to_container() const
     r.add_value("y", rect.y());
     r.add_value("width", rect.width());
     r.add_value("height", rect.height());
+    r.add_value("background_color", backgroundColor().name().toStdString());
+    r.add_value("grid_color", gridColor().name().toStdString());
     scene.add_value("rect", r);
   }
   // Nodes
@@ -113,6 +115,8 @@ void Scene::from_container(const gpds::container& container)
       rect.setWidth(rectContainer->get_value<int>("width").value_or(0));
       rect.setHeight(rectContainer->get_value<int>("height").value_or(0));
       setSceneRect(rect);
+      setBackgroundColor(QColor(QString::fromStdString(rectContainer->get_value<std::string>("background_color").value_or(""))));
+      setGridColor(QColor(QString::fromStdString(rectContainer->get_value<std::string>("grid_color").value_or(""))));
     }
   }
   // Nodes
@@ -1235,9 +1239,15 @@ const QColor& Scene::gridColor() const
 
 void Scene::setGridColor(const QColor& newGridColor)
 {
+  if (_gridColor == newGridColor)
+  {
+    return;
+  }
+
   _gridColor = newGridColor;
   // Redraw
   renderCachedBackground();
+  emit gridColorChanged(newGridColor);
 }
 
 const QColor& Scene::backgroundColor() const
@@ -1247,9 +1257,15 @@ const QColor& Scene::backgroundColor() const
 
 void Scene::setBackgroundColor(const QColor& newBackgroundColor)
 {
+  if (_backgroundColor == newBackgroundColor)
+  {
+    return;
+  }
+
   _backgroundColor = newBackgroundColor;
   // Redraw
   renderCachedBackground();
+  emit backgroundColorChanged(newBackgroundColor);
 }
 
 

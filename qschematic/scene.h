@@ -113,6 +113,9 @@ signals:
   void itemAdded(const std::shared_ptr<const Item> item);
   void itemRemoved(const std::shared_ptr<const Item> item);
   void itemHighlighted(const std::shared_ptr<const Item>& item);
+  void backgroundColorChanged(QColor newColor);
+  void gridColorChanged(QColor newColor);
+  void rectChanged(int newRect);
 
 protected:
   virtual void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
