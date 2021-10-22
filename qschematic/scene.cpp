@@ -74,6 +74,14 @@ gpds::container Scene::to_container() const
     nodesList.add_value("node", node->to_container());
   }
 
+  // Labels
+  gpds::container labelsList;
+
+  for (const auto& label : labels())
+  {
+    labelsList.add_value("label", label->to_container());
+  }
+
   // Nets
   gpds::container netsList;
 
@@ -94,6 +102,7 @@ gpds::container Scene::to_container() const
   gpds::container c;
   c.add_value("scene", scene);
   c.add_value("nodes", nodesList);
+  c.add_value("labels", labelsList);
   c.add_value("nets", netsList);
   return c;
 }
@@ -137,6 +146,27 @@ void Scene::from_container(const gpds::container& container)
 
       node->from_container(*nodeContainer);
       addItem(node);
+    }
+  }
+
+  // Labels
+  const gpds::container* labelsContainer = container.get_value<gpds::container*>("labels").value_or(nullptr);
+
+  if (labelsContainer)
+  {
+    for (const auto& labelContainer : labelsContainer->get_values<gpds::container*>("label"))
+    {
+      Q_ASSERT(labelContainer);
+      auto label = ItemFactory::instance().from_container(*labelContainer);
+
+      if (!label)
+      {
+        qWarning("Scene::from_container(): Couldn't restore label. Skipping.");
+        continue;
+      }
+
+      label->from_container(*labelContainer);
+      addItem(label);
     }
   }
 
@@ -1248,6 +1278,25 @@ void Scene::setGridColor(const QColor& newGridColor)
   // Redraw
   renderCachedBackground();
   emit gridColorChanged(newGridColor);
+}
+
+QList<std::shared_ptr<Label> > Scene::labels() const
+{
+  QList<std::shared_ptr<Label>> labels;
+
+  for (auto& item : _items)
+  {
+    auto label = std::dynamic_pointer_cast<Label>(item);
+
+    if (!label)
+    {
+      continue;
+    }
+
+    labels << label;
+  }
+
+  return labels;
 }
 
 const QColor& Scene::backgroundColor() const

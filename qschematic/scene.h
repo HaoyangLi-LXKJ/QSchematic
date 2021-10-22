@@ -107,6 +107,7 @@ public:
   const QColor& gridColor() const;
   void setGridColor(const QColor& newGridColor);
 
+  QList<std::shared_ptr<Label>> labels() const;
 signals:
   void modeChanged(int newMode);
   void isDirtyChanged(bool isDirty);
