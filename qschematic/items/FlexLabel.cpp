@@ -27,6 +27,13 @@ gpds::container FlexLabel::to_container() const
   gpds::container root;
   addItemTypeIdToContainer(root);
   root.add_value("label", QSchematic::Label::to_container());
+
+  // Flexlabel properties
+  gpds::container flexLabelProperties;
+  flexLabelProperties.add_value("color", Label::textColor().name().toStdString());
+  flexLabelProperties.add_value("size", Label::font().pixelSize());
+
+  root.add_value("flex_label_properties", flexLabelProperties);
   return root;
 }
 
@@ -34,6 +41,17 @@ void FlexLabel::from_container(const gpds::container& container)
 {
   // Root
   QSchematic::Label::from_container(*container.get_value<gpds::container*>("label").value());
+
+  // Flexlabel properties
+  const gpds::container* flexLabelProperties = container.get_value<gpds::container*>("flex_label_properties").value_or(nullptr);
+
+  if (flexLabelProperties)
+  {
+    setTextColor(QColor(QString::fromStdString(flexLabelProperties->get_value<std::string>("color").value_or(""))));
+    QFont current_font = font();
+    current_font.setPixelSize(flexLabelProperties->get_value<int>("size").value_or(0));
+    setFont(current_font);
+  }
 }
 
 std::shared_ptr<QSchematic::Item> FlexLabel::deepCopy() const
