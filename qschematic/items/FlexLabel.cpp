@@ -49,7 +49,13 @@ void FlexLabel::from_container(const gpds::container& container)
   {
     setTextColor(QColor(QString::fromStdString(flexLabelProperties->get_value<std::string>("color").value_or(""))));
     QFont current_font = font();
-    current_font.setPixelSize(flexLabelProperties->get_value<int>("size").value_or(0));
+    int fontSize = flexLabelProperties->get_value<int>("size").value_or(0);
+
+    if (fontSize > 0)
+    {
+      current_font.setPixelSize(flexLabelProperties->get_value<int>("size").value_or(0));
+    }
+
     setFont(current_font);
   }
 }
@@ -65,6 +71,8 @@ std::shared_ptr<QSchematic::Item> FlexLabel::deepCopy() const
 void FlexLabel::copyAttributes(FlexLabel& dest) const
 {
   QSchematic::Label::copyAttributes(dest);
+  dest.setTextColor(textColor());
+  dest.setFont(font());
 }
 
 void FlexLabel::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
