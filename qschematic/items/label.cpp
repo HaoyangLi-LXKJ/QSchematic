@@ -213,19 +213,42 @@ void Label::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWi
   painter->setBrush(Qt::NoBrush);
   painter->setFont(_font);
   painter->drawText(_textRect, _text, textOption);
-
-  // Draw the bounding rect if debug mode is enabled
-  if (_settings.debug)
-  {
-    painter->setPen(Qt::red);
-    painter->setBrush(Qt::NoBrush);
-    painter->drawRect(boundingRect());
-    painter->setPen(Qt::blue);
-    painter->drawPath(shape());
-  }
 }
 
 void Label::mouseDoubleClickEvent([[maybe_unused]] QGraphicsSceneMouseEvent* event)
 {
   emit doubleClicked();
+}
+
+QVariant Label::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value)
+{
+  switch (change)
+  {
+    case QGraphicsItem::ItemPositionChange:
+      {
+        QPointF newPos = value.toPointF();
+
+        Scene* currentScene = scene();
+
+        if (currentScene != nullptr)
+        {
+          QRectF rect = currentScene->sceneRect();
+          QPointF bottomLeftPos = newPos + textRect().bottomLeft();
+          QPointF topRightPos = newPos + textRect().topRight();
+
+          // Keep the label rect inside of the sheet
+          if (!rect.contains(bottomLeftPos) || !rect.contains(topRightPos))
+          {
+            newPos.setX(qMin(rect.right() - textRect().right(), qMax(newPos.x(), rect.left() - textRect().left())));
+            newPos.setY(qMin(rect.bottom() - textRect().bottom(), qMax(newPos.y(), rect.top() - textRect().top())));
+            return newPos;
+          }
+        }
+
+        return newPos;
+      }
+
+    default:
+      return Item::itemChange(change, value);
+  }
 }

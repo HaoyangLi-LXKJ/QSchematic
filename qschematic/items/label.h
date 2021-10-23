@@ -49,6 +49,8 @@ protected:
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
+  QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value) override;
+
 private:
   void calculateTextRect();
 

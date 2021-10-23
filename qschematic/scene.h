@@ -11,7 +11,6 @@
 #include "items/item.h"
 #include "items/wire.h"
 #include "qschematic_export.h"
-//#include "utils/itemscustodian.h"
 
 namespace QSchematic
 {
