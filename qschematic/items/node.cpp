@@ -887,6 +887,7 @@ QVariant Node::itemChange(QGraphicsItem::GraphicsItemChange change, const QVaria
 
         Scene* currentScene = scene();
 
+        // TODO: consider the rotation case
         if (currentScene != nullptr)
         {
           QRectF rect = currentScene->sceneRect();

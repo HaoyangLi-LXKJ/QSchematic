@@ -970,6 +970,12 @@ void Scene::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
           break;
         }
 
+        // Don't accept any mouse move event outside the sheet
+        if (!sceneRect().contains(event->scenePos()))
+        {
+          break;
+        }
+
         // Transform mouse coordinates to grid positions (snapped to nearest grid point)
         const QPointF& snappedPos = _settings.snapToGrid(event->scenePos());
 
