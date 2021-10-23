@@ -13,7 +13,7 @@ CommandChangeFlexLabelFontSize::CommandChangeFlexLabelFontSize(const QPointer<Fl
   _label(label),
   _new_size(font_size)
 {
-  _old_size = _label->font().pixelSize();
+  _old_size = _label->font().pointSize();
   connect(_label.data(), &QObject::destroyed, this, &UndoCommand::handleDependencyDestruction);
   setText(QStringLiteral("Change label size"));
 }
@@ -38,7 +38,7 @@ void CommandChangeFlexLabelFontSize::undo()
   }
 
   QFont current_font = _label->font();
-  current_font.setPixelSize(_old_size);
+  current_font.setPointSize(_old_size);
   _label->setFont(current_font);
 }
 
@@ -50,7 +50,7 @@ void CommandChangeFlexLabelFontSize::redo()
   }
 
   QFont current_font = _label->font();
-  current_font.setPixelSize(_new_size);
+  current_font.setPointSize(_new_size);
   _label->setFont(current_font);
 }
 

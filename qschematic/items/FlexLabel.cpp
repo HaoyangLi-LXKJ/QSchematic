@@ -31,7 +31,7 @@ gpds::container FlexLabel::to_container() const
   // Flexlabel properties
   gpds::container flexLabelProperties;
   flexLabelProperties.add_value("color", Label::textColor().name().toStdString());
-  flexLabelProperties.add_value("size", Label::font().pixelSize());
+  flexLabelProperties.add_value("size", Label::font().pointSize());
 
   root.add_value("flex_label_properties", flexLabelProperties);
   return root;
@@ -53,7 +53,7 @@ void FlexLabel::from_container(const gpds::container& container)
 
     if (fontSize > 0)
     {
-      current_font.setPixelSize(flexLabelProperties->get_value<int>("size").value_or(0));
+      current_font.setPointSize(flexLabelProperties->get_value<int>("size").value_or(0));
     }
 
     setFont(current_font);
@@ -99,7 +99,7 @@ void FlexLabel::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
     {
       if (!scene())
         return;
-      const int& newFontSize = QInputDialog::getInt(nullptr, "Change Label Size", "New label size", font().pixelSize(), 1, MAX_FONT_SIZE);
+      const int& newFontSize = QInputDialog::getInt(nullptr, "Change Label Size", "New label size", font().pointSize(), 1, MAX_FONT_SIZE);
 
       changeFontSize(newFontSize);
     });

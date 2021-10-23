@@ -73,7 +73,7 @@ void FlexLabel::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
     {
       if (!scene())
         return;
-      const int& newFontSize = QInputDialog::getInt(nullptr, "Change Label Size", "New label size", font().pixelSize(), 1, MAX_FONT_SIZE);
+      const int& newFontSize = QInputDialog::getInt(nullptr, "Change Label Size", "New label size", font().pointSize(), 1, MAX_FONT_SIZE);
 
       changeFontSize(newFontSize);
     });
