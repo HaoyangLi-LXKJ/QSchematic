@@ -526,6 +526,16 @@ void Node::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
   QPointF newMousePos(event->scenePos());
 
+  QRectF rect = scene()->sceneRect();
+
+  // Don't accept any mouse move event outside the sheet
+  if (!rect.contains(newMousePos))
+  {
+    // Hand over to base class
+    Item::mouseMoveEvent(event);
+    return;
+  }
+
   switch (_mode)
   {
     case None:

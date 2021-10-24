@@ -232,7 +232,10 @@ QVariant Label::itemChange(QGraphicsItem::GraphicsItemChange change, const QVari
 
         if (currentScene != nullptr)
         {
-          QRectF rect = currentScene->sceneRect();
+          // the new position value is relative to parent item not the scene
+          // the rect must be relative to the parent coordinate
+          QRectF rect = mapRectToParent(mapRectFromScene(currentScene->sceneRect()));
+
           QPointF bottomLeftPos = newPos + textRect().bottomLeft();
           QPointF topRightPos = newPos + textRect().topRight();
 
@@ -241,6 +244,7 @@ QVariant Label::itemChange(QGraphicsItem::GraphicsItemChange change, const QVari
           {
             newPos.setX(qMin(rect.right() - textRect().right(), qMax(newPos.x(), rect.left() - textRect().left())));
             newPos.setY(qMin(rect.bottom() - textRect().bottom(), qMax(newPos.y(), rect.top() - textRect().top())));
+
             return newPos;
           }
         }
