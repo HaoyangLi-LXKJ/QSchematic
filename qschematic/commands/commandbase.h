@@ -1,6 +1,6 @@
 #pragma once
 
-#include "qschematic_export.h"
+#include <qschematic_export.h>
 
 #include <QUndoCommand>
 

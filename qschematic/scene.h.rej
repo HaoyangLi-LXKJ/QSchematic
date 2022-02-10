@@ -1,0 +1,9 @@
+diff a/qschematic/scene.h b/qschematic/scene.h	(rejected hunks)
+@@ -170,6 +170,7 @@
+   std::shared_ptr<wire_system::manager> m_wire_manager;
+   Item* _highlightedItem;
+ 
++  // The secion below is added by PT for the feature of SLS
+   QColor _backgroundColor = Qt::white;
+   QColor _gridColor = Qt::gray;
+ 
