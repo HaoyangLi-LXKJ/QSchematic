@@ -5,17 +5,17 @@
 class FlowStart : public QSchematic::Node
 {
     Q_OBJECT
-    Q_DISABLE_COPY(FlowStart)
+    Q_DISABLE_COPY_MOVE(FlowStart)
 
 public:
     FlowStart();
-    virtual ~FlowStart() override = default;
+    ~FlowStart() override = default;
 
-    virtual gpds::container to_container() const override;
-    virtual void from_container(const gpds::container& container) override;
-    virtual std::shared_ptr<Item> deepCopy() const override;
-    virtual QRectF boundingRect() const override;
-    virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) override;
+    gpds::container to_container() const override;
+    void from_container(const gpds::container& container) override;
+    std::shared_ptr<Item> deepCopy() const override;
+    QRectF boundingRect() const override;
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 protected:
     void copyAttributes(FlowStart& dest) const;

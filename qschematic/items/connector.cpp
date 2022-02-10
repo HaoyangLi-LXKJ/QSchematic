@@ -80,8 +80,8 @@ void Connector::from_container(const gpds::container& container)
 
 std::shared_ptr<Item> Connector::deepCopy() const
 {
-  auto clone = std::make_shared<Connector>(type(), gridPos(), text(), parentItem());
-  copyAttributes(*(clone.get()));
+    auto clone = std::make_shared<Connector>(type(), gridPos(), text(), parentItem());
+    copyAttributes(*clone);
 
   return clone;
 }

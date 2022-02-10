@@ -10,14 +10,12 @@
 
 using namespace QSchematic;
 
-
-Item::Item(int type, QGraphicsItem* parent) :
-  QGraphicsObject(parent),
-  _type(type),
-  _snapToGrid(true),
-  _highlightEnabled(true),
-  _highlighted(false),
-  _oldRot{0}
+Item::Item(int type, QGraphicsItem *parent) : QGraphicsObject(parent),
+                                              _type(type),
+                                              _snapToGrid(true),
+                                              _highlightEnabled(true),
+                                              _highlighted(false),
+                                              _oldRot{0}
 {
   // Misc
   setAcceptHoverEvents(true);
@@ -29,7 +27,7 @@ Item::Item(int type, QGraphicsItem* parent) :
   connect(this, &Item::rotationChanged, this, &Item::rotChanged);
 
   // Connect signals to parent item
-  Item* parentItem = static_cast<Item*>(parent);
+  Item *parentItem = static_cast<Item *>(parent);
 
   if (parentItem)
   {
@@ -62,7 +60,7 @@ gpds::container Item::to_container() const
   return root;
 }
 
-void Item::from_container(const gpds::container& container)
+void Item::from_container(const gpds::container &container)
 {
   setPosX(container.get_value<double>("x").value_or(0));
   setPosY(container.get_value<double>("y").value_or(0));
@@ -73,12 +71,13 @@ void Item::from_container(const gpds::container& container)
   setHighlightEnabled(container.get_value<bool>("highlight").value_or(false));
 }
 
-void Item::copyAttributes(Item& dest) const
+void Item::copyAttributes(Item &dest) const
 {
   // Base class
   dest.setParentItem(parentItem());
   dest.setPos(pos());
   dest.setRotation(rotation());
+  dest.setMovable(isMovable());
   dest.setVisible(isVisible());
 
   // Attributes
@@ -89,14 +88,14 @@ void Item::copyAttributes(Item& dest) const
   dest._oldRot = _oldRot;
 }
 
-void Item::addItemTypeIdToContainer(gpds::container& container) const
+void Item::addItemTypeIdToContainer(gpds::container &container) const
 {
   container.add_attribute("type_id", type());
 }
 
-Scene* Item::scene() const
+Scene *Item::scene() const
 {
-  return qobject_cast<Scene*>(QGraphicsObject::scene());
+  return qobject_cast<Scene *>(QGraphicsObject::scene());
 }
 
 int Item::type() const
@@ -104,7 +103,7 @@ int Item::type() const
   return _type;
 }
 
-void Item::setGridPos(const QPoint& gridPos)
+void Item::setGridPos(const QPoint &gridPos)
 {
   setPos(_settings.toScenePoint(gridPos));
 }
@@ -139,7 +138,7 @@ int Item::gridPosY() const
   return gridPos().y();
 }
 
-void Item::setPos(const QPointF& pos)
+void Item::setPos(const QPointF &pos)
 {
   QGraphicsObject::setPos(pos);
 }
@@ -174,7 +173,7 @@ qreal Item::posY() const
   return pos().y();
 }
 
-void Item::setScenePos(const QPointF& point)
+void Item::setScenePos(const QPointF &point)
 {
   QGraphicsObject::setPos(mapToParent(mapFromScene(point)));
 }
@@ -209,12 +208,12 @@ qreal Item::scenePosY() const
   return scenePos().y();
 }
 
-void Item::moveBy(const QVector2D& moveBy)
+void Item::moveBy(const QVector2D &moveBy)
 {
   setPos(pos() + moveBy.toPointF());
 }
 
-void Item::setSettings(const Settings& settings)
+void Item::setSettings(const Settings &settings)
 {
   // Resnap to grid
   if (snapToGrid())
@@ -232,7 +231,7 @@ void Item::setSettings(const Settings& settings)
   update();
 }
 
-const Settings& Item::settings() const
+const Settings &Item::settings() const
 {
   return _settings;
 }
@@ -267,9 +266,9 @@ void Item::setHighlighted(bool highlighted)
   _highlighted = highlighted;
 
   // Ripple through children
-  for (QGraphicsItem* child : childItems())
+  for (QGraphicsItem *child : childItems())
   {
-    Item* childItem = qgraphicsitem_cast<Item*>(child);
+    Item *childItem = qgraphicsitem_cast<Item *>(child);
 
     if (childItem)
     {
@@ -289,7 +288,7 @@ bool Item::highlightEnabled() const
   return _highlightEnabled;
 }
 
-QPixmap Item::toPixmap(QPointF& hotSpot, qreal scale)
+QPixmap Item::toPixmap(QPointF &hotSpot, qreal scale)
 {
   // Retrieve the bounding rect
   QRectF rectF = boundingRect();
@@ -298,7 +297,7 @@ QPixmap Item::toPixmap(QPointF& hotSpot, qreal scale)
   // Adjust the rectangle as the QPixmap doesn't handle negative coordinates
   rectF.setWidth(rectF.width() - rectF.x());
   rectF.setHeight(rectF.height() - rectF.y());
-  const QRect& rect = rectF.toRect();
+  const QRect &rect = rectF.toRect();
 
   if (rect.isNull() || !rect.isValid())
   {
@@ -320,7 +319,7 @@ QPixmap Item::toPixmap(QPointF& hotSpot, qreal scale)
   painter.translate(hotSpot);
   paint(&painter, nullptr, nullptr);
 
-  for (QGraphicsItem* child : childItems())
+  for (QGraphicsItem *child : childItems())
   {
     painter.save();
     painter.translate(child->pos());
@@ -333,59 +332,59 @@ QPixmap Item::toPixmap(QPointF& hotSpot, qreal scale)
   return pixmap;
 }
 
-QVariant Item::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value)
+QVariant Item::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
 {
   switch (change)
   {
-    case QGraphicsItem::ItemSceneChange:
-      {
-        // NOTE: by doing this non-updated scene (ghost images staying) disappeared for some further cases (tips from usenet)
-        prepareGeometryChange();
-        return QGraphicsItem::itemChange(change, value);
-      }
+  case QGraphicsItem::ItemSceneChange:
+  {
+    // NOTE: by doing this non-updated scene (ghost images staying) disappeared for some further cases (tips from usenet)
+    prepareGeometryChange();
+    return QGraphicsItem::itemChange(change, value);
+  }
 
-    case QGraphicsItem::ItemPositionChange:
-      {
-        QPointF newPos = value.toPointF();
+  case QGraphicsItem::ItemPositionChange:
+  {
+    QPointF newPos = value.toPointF();
 
-        if (snapToGrid())
-        {
-          newPos = _settings.snapToGrid(newPos);
-        }
+    if (snapToGrid())
+    {
+      newPos = _settings.snapToGrid(newPos);
+    }
 
-        return newPos;
-      }
+    return newPos;
+  }
 
-    case QGraphicsItem::ItemParentChange:
-      if (parentObject())
-      {
-        disconnect(parentObject(), nullptr, this, nullptr);
-      }
+  case QGraphicsItem::ItemParentChange:
+    if (parentObject())
+    {
+      disconnect(parentObject(), nullptr, this, nullptr);
+    }
 
-      return value;
+    return value;
 
-    case QGraphicsItem::ItemParentHasChanged:
-      {
-        Item* parent = static_cast<Item*>(parentItem());
+  case QGraphicsItem::ItemParentHasChanged:
+  {
+    Item *parent = static_cast<Item *>(parentItem());
 
-        if (parent)
-        {
-          connect(parent, &Item::moved, this, &Item::scenePosChanged);
-          connect(parent, &Item::rotated, this, &Item::scenePosChanged);
-        }
+    if (parent)
+    {
+      connect(parent, &Item::moved, this, &Item::scenePosChanged);
+      connect(parent, &Item::rotated, this, &Item::scenePosChanged);
+    }
 
-        return value;
-      }
+    return value;
+  }
 
-    default:
-      return QGraphicsItem::itemChange(change, value);
+  default:
+    return QGraphicsItem::itemChange(change, value);
   }
 }
 
 void Item::posChanged()
 {
   scenePosChanged();
-  const QPointF& newPos = pos();
+  const QPointF &newPos = pos();
   QVector2D movedBy(newPos - _oldPos);
 
   if (!movedBy.isNull())
@@ -422,4 +421,3 @@ void Item::update()
   // Base class
   QGraphicsObject::update();
 }
-

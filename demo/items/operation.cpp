@@ -13,6 +13,7 @@
 #include "operation.h"
 #include "operationconnector.h"
 #include "commands/commandnodeaddconnector.h"
+#include "popup/popup_operation.hpp"
 
 const QColor COLOR_BODY_FILL   = QColor( QStringLiteral( "#e0e0e0" ) );
 const QColor COLOR_BODY_BORDER = QColor(Qt::black);
@@ -78,10 +79,15 @@ void Operation::from_container(const gpds::container& container)
     _label->from_container(*container.get_value<gpds::container*>("label").value());
 }
 
+std::unique_ptr<QWidget> Operation::popup() const
+{
+    return std::make_unique<PopupOperation>(*this);
+}
+
 std::shared_ptr<QSchematic::Item> Operation::deepCopy() const
 {
     auto clone = std::make_shared<Operation>(::ItemType::OperationType, parentItem());
-    copyAttributes(*(clone.get()));
+    copyAttributes(*clone);
 
     return clone;
 }

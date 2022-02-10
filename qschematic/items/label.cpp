@@ -5,15 +5,14 @@
 #include "label.h"
 #include "../scene.h"
 
-const QColor COLOR_LABEL             = QColor("#000000");
+const QColor COLOR_LABEL = QColor("#000000");
 const QColor COLOR_LABEL_HIGHLIGHTED = QColor("#dc2479");
 const qreal LABEL_TEXT_PADDING = 2;
 
 using namespace QSchematic;
 
-Label::Label(int type, QGraphicsItem* parent) :
-  Item(type, parent),
-  _hasConnectionPoint(true)
+Label::Label(int type, QGraphicsItem *parent) : Item(type, parent),
+                                                _hasConnectionPoint(true)
 {
   setSnapToGrid(false);
 }
@@ -36,13 +35,13 @@ gpds::container Label::to_container() const
   return root;
 }
 
-void Label::from_container(const gpds::container& container)
+void Label::from_container(const gpds::container &container)
 {
-  Item::from_container(*container.get_value<gpds::container*>("item").value());
+  Item::from_container(*container.get_value<gpds::container *>("item").value());
   setText(QString::fromStdString(container.get_value<std::string>("text").value_or("")));
 
   // Connection point
-  const gpds::container* connectionPointContainer = container.get_value<gpds::container*>("connection_point").value_or(nullptr);
+  const gpds::container *connectionPointContainer = container.get_value<gpds::container *>("connection_point").value_or(nullptr);
 
   if (connectionPointContainer)
   {
@@ -61,12 +60,12 @@ void Label::from_container(const gpds::container& container)
 std::shared_ptr<Item> Label::deepCopy() const
 {
   auto clone = std::make_shared<Label>(type(), parentItem());
-  copyAttributes(*(clone.get()));
+  copyAttributes(*clone);
 
   return clone;
 }
 
-void Label::copyAttributes(Label& dest) const
+void Label::copyAttributes(Label &dest) const
 {
   // Base class
   Item::copyAttributes(dest);
@@ -98,14 +97,14 @@ QPainterPath Label::shape() const
   return path;
 }
 
-void Label::setText(const QString& text)
+void Label::setText(const QString &text)
 {
   _text = text;
   calculateTextRect();
   emit textChanged(_text);
 }
 
-void Label::setFont(const QFont& font)
+void Label::setFont(const QFont &font)
 {
   _font = font;
 
@@ -122,7 +121,7 @@ bool Label::hasConnectionPoint() const
   return _hasConnectionPoint;
 }
 
-void Label::setConnectionPoint(const QPointF& connectionPoint)
+void Label::setConnectionPoint(const QPointF &connectionPoint)
 {
   _connectionPoint = connectionPoint;
 
@@ -136,12 +135,12 @@ void Label::calculateTextRect()
   _textRect.adjust(-LABEL_TEXT_PADDING, -LABEL_TEXT_PADDING, LABEL_TEXT_PADDING, LABEL_TEXT_PADDING);
 }
 
-const QColor& Label::textColor() const
+const QColor &Label::textColor() const
 {
   return _text_color;
 }
 
-void Label::setTextColor(const QColor& newText_color)
+void Label::setTextColor(const QColor &newText_color)
 {
   _text_color = newText_color;
   Item::update();
@@ -162,7 +161,7 @@ QRectF Label::textRect() const
   return _textRect;
 }
 
-void Label::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void Label::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
   Q_UNUSED(option)
   Q_UNUSED(widget)
@@ -215,44 +214,44 @@ void Label::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWi
   painter->drawText(_textRect, _text, textOption);
 }
 
-void Label::mouseDoubleClickEvent([[maybe_unused]] QGraphicsSceneMouseEvent* event)
+void Label::mouseDoubleClickEvent([[maybe_unused]] QGraphicsSceneMouseEvent *event)
 {
   emit doubleClicked();
 }
 
-QVariant Label::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value)
+QVariant Label::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
 {
   switch (change)
   {
-    case QGraphicsItem::ItemPositionChange:
+  case QGraphicsItem::ItemPositionChange:
+  {
+    QPointF newPos = value.toPointF();
+
+    Scene *currentScene = scene();
+
+    if (currentScene != nullptr)
+    {
+      // the new position value is relative to parent item not the scene
+      // the rect must be relative to the parent coordinate
+      QRectF rect = mapRectToParent(mapRectFromScene(currentScene->sceneRect()));
+
+      QPointF bottomLeftPos = newPos + textRect().bottomLeft();
+      QPointF topRightPos = newPos + textRect().topRight();
+
+      // Keep the label rect inside of the sheet
+      if (!rect.contains(bottomLeftPos) || !rect.contains(topRightPos))
       {
-        QPointF newPos = value.toPointF();
-
-        Scene* currentScene = scene();
-
-        if (currentScene != nullptr)
-        {
-          // the new position value is relative to parent item not the scene
-          // the rect must be relative to the parent coordinate
-          QRectF rect = mapRectToParent(mapRectFromScene(currentScene->sceneRect()));
-
-          QPointF bottomLeftPos = newPos + textRect().bottomLeft();
-          QPointF topRightPos = newPos + textRect().topRight();
-
-          // Keep the label rect inside of the sheet
-          if (!rect.contains(bottomLeftPos) || !rect.contains(topRightPos))
-          {
-            newPos.setX(qMin(rect.right() - textRect().right(), qMax(newPos.x(), rect.left() - textRect().left())));
-            newPos.setY(qMin(rect.bottom() - textRect().bottom(), qMax(newPos.y(), rect.top() - textRect().top())));
-
-            return newPos;
-          }
-        }
+        newPos.setX(qMin(rect.right() - textRect().right(), qMax(newPos.x(), rect.left() - textRect().left())));
+        newPos.setY(qMin(rect.bottom() - textRect().bottom(), qMax(newPos.y(), rect.top() - textRect().top())));
 
         return newPos;
       }
+    }
 
-    default:
-      return Item::itemChange(change, value);
+    return newPos;
+  }
+
+  default:
+    return Item::itemChange(change, value);
   }
 }

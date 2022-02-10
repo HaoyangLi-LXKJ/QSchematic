@@ -9,29 +9,26 @@
 #include "../utils.h"
 #include "../scene.h"
 
-
 #include <QDebug>
 
-
 const QColor COLOR_HIGHLIGHTED = QColor(Qt::blue);
-const QColor COLOR_BODY_FILL   = QColor(Qt::green);
+const QColor COLOR_BODY_FILL = QColor(Qt::green);
 const QColor COLOR_BODY_BORDER = QColor(Qt::black);
-const qreal PEN_WIDTH          = 1.5;
+const qreal PEN_WIDTH = 1.5;
 
 using namespace QSchematic;
 
-const int DEFAULT_WIDTH     = 160;
-const int DEFAULT_HEIGHT    = 240;
+const int DEFAULT_WIDTH = 160;
+const int DEFAULT_HEIGHT = 240;
 
-Node::Node(int type, QGraphicsItem* parent) :
-  Item(type, parent),
-  _mode(None),
-  _size(DEFAULT_WIDTH, DEFAULT_HEIGHT),
-  _allowMouseResize(true),
-  _allowMouseRotate(true),
-  _connectorsMovable(false),
-  _connectorsSnapPolicy(Connector::NodeSizerectOutline),
-  _connectorsSnapToGrid(true)
+Node::Node(int type, QGraphicsItem *parent) : Item(type, parent),
+                                              _mode(None),
+                                              _size(DEFAULT_WIDTH, DEFAULT_HEIGHT),
+                                              _allowMouseResize(true),
+                                              _allowMouseRotate(true),
+                                              _connectorsMovable(false),
+                                              _connectorsSnapPolicy(Connector::NodeSizerectOutline),
+                                              _connectorsSnapToGrid(true)
 {
   connect(this, &Node::settingsChanged, this, &Node::propagateSettings);
 }
@@ -53,7 +50,7 @@ gpds::container Node::to_container() const
   // Connectors
   gpds::container connectorsContainer;
 
-  for (const auto& connector : connectors())
+  for (const auto &connector : connectors())
   {
     if (_specialConnectors.contains(connector))
     {
@@ -77,16 +74,16 @@ gpds::container Node::to_container() const
   return root;
 }
 
-void Node::from_container(const gpds::container& container)
+void Node::from_container(const gpds::container &container)
 {
   // Root
-  Item::from_container(*container.get_value<gpds::container*>("item").value());
+  Item::from_container(*container.get_value<gpds::container *>("item").value());
   setSize(container.get_value<double>("width").value_or(0), container.get_value<double>("height").value_or(0));
   setAllowMouseResize(container.get_value<bool>("allow_mouse_resize").value_or(true));
   setAllowMouseRotate(container.get_value<bool>("allow_mouse_rotate").value_or(true));
 
   // Connectors configuration
-  const gpds::container* connectorsConfigurationContainer = container.get_value<gpds::container*>("connectors_configuration").value_or(nullptr);
+  const gpds::container *connectorsConfigurationContainer = container.get_value<gpds::container *>("connectors_configuration").value_or(nullptr);
 
   if (connectorsConfigurationContainer)
   {
@@ -96,13 +93,13 @@ void Node::from_container(const gpds::container& container)
   }
 
   // Connectors
-  const gpds::container* connectorsContainer = container.get_value<gpds::container*>("connectors").value_or(nullptr);
+  const gpds::container *connectorsContainer = container.get_value<gpds::container *>("connectors").value_or(nullptr);
 
   if (connectorsContainer)
   {
     clearConnectors();
 
-    for (const gpds::container* connectorContainer : connectorsContainer->get_values<gpds::container*>("connector"))
+    for (const gpds::container *connectorContainer : connectorsContainer->get_values<gpds::container *>("connector"))
     {
       auto connector = std::dynamic_pointer_cast<Connector>(ItemFactory::instance().from_container(*connectorContainer));
 
@@ -120,12 +117,12 @@ void Node::from_container(const gpds::container& container)
 std::shared_ptr<Item> Node::deepCopy() const
 {
   auto clone = std::make_shared<Node>(type(), parentItem());
-  copyAttributes(*(clone.get()));
+  copyAttributes(*clone);
 
   return clone;
 }
 
-void Node::copyAttributes(Node& dest) const
+void Node::copyAttributes(Node &dest) const
 {
   // Base class
   Item::copyAttributes(dest);
@@ -133,7 +130,7 @@ void Node::copyAttributes(Node& dest) const
   // Connectors
   dest.clearConnectors();
 
-  for (const auto& connector : _connectors)
+  for (const auto &connector : _connectors)
   {
     if (_specialConnectors.contains(connector))
     {
@@ -163,7 +160,7 @@ Node::Mode Node::mode() const
   return _mode;
 }
 
-void Node::setSize(const QSizeF& size)
+void Node::setSize(const QSizeF &size)
 {
   // short circuit when no effective change at all times as a manner of policy
   if (size == _size)
@@ -184,7 +181,7 @@ void Node::setSize(const QSizeF& size)
   _size = size;
 
   // Move connectors
-  for (const auto& connector : connectors())
+  for (const auto &connector : connectors())
   {
     if (qFuzzyCompare(connector->posX(), oldSize.width()) ||
         connector->posX() > size.width())
@@ -260,7 +257,7 @@ bool Node::allowMouseRotate() const
   return _allowMouseRotate;
 }
 
-void Node::addSpecialConnector(const std::shared_ptr<Connector>& connector)
+void Node::addSpecialConnector(const std::shared_ptr<Connector> &connector)
 {
   // Sanity check
   if (!connector)
@@ -276,9 +273,9 @@ void Node::addSpecialConnector(const std::shared_ptr<Connector>& connector)
 QMap<RectanglePoint, QRectF> Node::resizeHandles() const
 {
   QMap<RectanglePoint, QRectF> map;
-  const int& resizeHandleSize = _settings.resizeHandleSize;
+  const int &resizeHandleSize = _settings.resizeHandleSize;
 
-  const QRectF& r = sizeRect();
+  const QRectF &r = sizeRect();
 
   // Corners
   map.insert(RectanglePointBottomRight, QRectF(r.bottomRight() + QPointF(1, 1) - QPointF(resizeHandleSize, resizeHandleSize), QSizeF(2 * resizeHandleSize, 2 * resizeHandleSize)));
@@ -291,13 +288,13 @@ QMap<RectanglePoint, QRectF> Node::resizeHandles() const
   {
     map.insert(RectanglePointTop, QRectF(Utils::centerPoint(r.topRight(), r.topLeft()) + QPointF(1, 1) - QPointF(resizeHandleSize, resizeHandleSize), QSizeF(2 * resizeHandleSize, 2 * resizeHandleSize)));
     map.insert(RectanglePointBottom, QRectF(Utils::centerPoint(r.bottomRight(), r.bottomLeft()) + QPointF(1, 1) - QPointF(resizeHandleSize, resizeHandleSize), QSizeF(2 * resizeHandleSize,
-                                            2 * resizeHandleSize)));
+                                                                                                                                                                      2 * resizeHandleSize)));
   }
 
   if (r.bottomLeft().y() - r.topLeft().y() > 7 * resizeHandleSize)
   {
     map.insert(RectanglePointRight, QRectF(Utils::centerPoint(r.topRight(), r.bottomRight()) + QPointF(1, 0) - QPoint(resizeHandleSize, resizeHandleSize), QSize(2 * resizeHandleSize,
-                                           2 * resizeHandleSize)));
+                                                                                                                                                                 2 * resizeHandleSize)));
     map.insert(RectanglePointLeft, QRectF(Utils::centerPoint(r.bottomLeft(), r.topLeft()) + QPointF(1, 0) - QPoint(resizeHandleSize, resizeHandleSize), QSize(2 * resizeHandleSize, 2 * resizeHandleSize)));
   }
 
@@ -306,12 +303,12 @@ QMap<RectanglePoint, QRectF> Node::resizeHandles() const
 
 QRectF Node::rotationHandle() const
 {
-  const QRectF& r = sizeRect();
-  const int& resizeHandleSize = _settings.resizeHandleSize;
+  const QRectF &r = sizeRect();
+  const int &resizeHandleSize = _settings.resizeHandleSize;
   return QRectF(Utils::centerPoint(r.topRight(), r.topLeft()) + QPointF(1, -resizeHandleSize * 3) - QPointF(resizeHandleSize, resizeHandleSize), QSizeF(2 * resizeHandleSize, 2 * resizeHandleSize));
 }
 
-bool Node::addConnector(const std::shared_ptr<Connector>& connector)
+bool Node::addConnector(const std::shared_ptr<Connector> &connector)
 {
   if (!connector)
   {
@@ -329,7 +326,7 @@ bool Node::addConnector(const std::shared_ptr<Connector>& connector)
   return true;
 }
 
-bool Node::removeConnector(const std::shared_ptr<Connector>& connector)
+bool Node::removeConnector(const std::shared_ptr<Connector> &connector)
 {
   if (!connector || !_connectors.contains(connector))
   {
@@ -370,7 +367,7 @@ QList<QPointF> Node::connectionPointsRelative() const
 {
   QList<QPointF> list;
 
-  for (const auto& connector : _connectors)
+  for (const auto &connector : _connectors)
   {
     // Ignore hidden connectors
     if (!connector->isVisible())
@@ -398,7 +395,7 @@ QList<QPointF> Node::connectionPointsAbsolute() const
 {
   QList<QPointF> list(connectionPointsRelative());
 
-  for (QPointF& point : list)
+  for (QPointF &point : list)
   {
     point += pos();
   }
@@ -471,7 +468,7 @@ auto Node::sizeChangedEvent() -> void
   // default implementation is noop
 }
 
-void Node::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void Node::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
   event->accept();
 
@@ -511,14 +508,14 @@ void Node::mousePressEvent(QGraphicsSceneMouseEvent* event)
   }
 }
 
-void Node::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void Node::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
   event->accept();
   Item::mouseReleaseEvent(event);
   _mode = None;
 }
 
-void Node::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+void Node::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
   Q_ASSERT(scene());
 
@@ -538,186 +535,186 @@ void Node::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
   switch (_mode)
   {
-    case None:
-      {
-        Item::mouseMoveEvent(event);
+  case None:
+  {
+    Item::mouseMoveEvent(event);
 
+    break;
+  }
+
+  case Resize:
+  {
+    // Sanity check
+    if (!_allowMouseResize)
+    {
+      qFatal("Node::mouseMoveEvent(): _mode is 'Resize' although _allowMouseResize is false");
+      break;
+    }
+
+    // Left mouse button to move
+    if (event->buttons() & Qt::LeftButton)
+    {
+
+      if (canSnapToGrid())
+      {
+        newMousePos = _settings.snapToGrid(newMousePos);
+      }
+
+      // Calculate mouse movement in grid units
+      QPointF d(newMousePos - _lastMousePosWithGridMove);
+
+      // Rotate mouse movement
+      {
+        qreal angle = 2 * M_PI - rotation() * M_PI / 180;
+        qreal x = qCos(angle) * d.rx() - qSin(angle) * d.ry();
+        qreal y = qSin(angle) * d.rx() + qCos(angle) * d.ry();
+        d = QPointF(x, y);
+      }
+
+      qreal dx = d.x();
+      qreal dy = d.y();
+
+      // Don't do anything if there's nothing to do
+      if (qFuzzyIsNull(dx) && qFuzzyIsNull(dy))
+      {
         break;
       }
 
-    case Resize:
+      // Track this
+      _lastMousePosWithGridMove = newMousePos;
+
+      // Perform resizing
+      qreal newX = posX();
+      qreal newY = posY();
+      qreal newWidth = _size.width();
+      qreal newHeight = _size.height();
+
+      switch (_resizeHandle)
       {
-        // Sanity check
-        if (!_allowMouseResize)
-        {
-          qFatal("Node::mouseMoveEvent(): _mode is 'Resize' although _allowMouseResize is false");
-          break;
-        }
+      case RectanglePointTopLeft:
+        newX += dx;
+        newY += dy;
+        newWidth -= dx;
+        newHeight -= dy;
+        break;
 
-        // Left mouse button to move
-        if (event->buttons() & Qt::LeftButton)
-        {
+      case RectanglePointTop:
+        newY += dy;
+        newHeight -= dy;
+        break;
 
-          if (canSnapToGrid())
-          {
-            newMousePos = _settings.snapToGrid(newMousePos);
-          }
+      case RectanglePointTopRight:
+        newY += dy;
+        newWidth += dx;
+        newHeight -= dy;
+        break;
 
-          // Calculate mouse movement in grid units
-          QPointF d(newMousePos - _lastMousePosWithGridMove);
+      case RectanglePointRight:
+        newWidth += dx;
+        break;
 
-          // Rotate mouse movement
-          {
-            qreal angle = 2 * M_PI - rotation() * M_PI / 180;
-            qreal x = qCos(angle) * d.rx() - qSin(angle) * d.ry();
-            qreal y = qSin(angle) * d.rx() + qCos(angle) * d.ry();
-            d = QPointF(x, y);
-          }
+      case RectanglePointBottomRight:
+        newWidth += dx;
+        newHeight += dy;
+        break;
 
-          qreal dx = d.x();
-          qreal dy = d.y();
+      case RectanglePointBottom:
+        newHeight += dy;
+        break;
 
-          // Don't do anything if there's nothing to do
-          if (qFuzzyIsNull(dx) && qFuzzyIsNull(dy))
-          {
-            break;
-          }
+      case RectanglePointBottomLeft:
+        newX += dx;
+        newWidth -= dx;
+        newHeight += dy;
+        break;
 
-          // Track this
-          _lastMousePosWithGridMove = newMousePos;
-
-          // Perform resizing
-          qreal newX = posX();
-          qreal newY = posY();
-          qreal newWidth = _size.width();
-          qreal newHeight = _size.height();
-
-          switch (_resizeHandle)
-          {
-            case RectanglePointTopLeft:
-              newX += dx;
-              newY += dy;
-              newWidth -= dx;
-              newHeight -= dy;
-              break;
-
-            case RectanglePointTop:
-              newY += dy;
-              newHeight -= dy;
-              break;
-
-            case RectanglePointTopRight:
-              newY += dy;
-              newWidth += dx;
-              newHeight -= dy;
-              break;
-
-            case RectanglePointRight:
-              newWidth += dx;
-              break;
-
-            case RectanglePointBottomRight:
-              newWidth += dx;
-              newHeight += dy;
-              break;
-
-            case RectanglePointBottom:
-              newHeight += dy;
-              break;
-
-            case RectanglePointBottomLeft:
-              newX += dx;
-              newWidth -= dx;
-              newHeight += dy;
-              break;
-
-            case RectanglePointLeft:
-              newX += dx;
-              newWidth -= dx;
-              break;
-          }
-
-          // Snap to grid (if supposed to)
-          QPointF newPos(newX, newY);
-          QSizeF newSize(newWidth, newHeight);
-
-          if (canSnapToGrid())
-          {
-            newSize = _settings.snapToGrid(newSize);
-          }
-
-          // Minimum size
-          if (newSize.height() < 1)
-          {
-            newSize.setHeight(1);
-
-            if (!qFuzzyCompare(newPos.ry(), pos().ry()))
-            {
-              newPos.setY(posY() + _size.height() - 1);
-            }
-          }
-
-          if (newSize.width() < 1)
-          {
-            newSize.setWidth(1);
-
-            if (!qFuzzyCompare(newPos.rx(), pos().rx()))
-            {
-              newPos.setX(posX() + _size.width() - 1);
-            }
-          }
-
-          // Correct origin
-          auto newOrigin = QPointF(newSize.width() / 2, newSize.height() / 2) + newPos - pos();
-          auto angle = rotation() * M_PI / 180;
-          auto offset = newOrigin - transformOriginPoint();
-          auto newOriginRotated = QPointF(qCos(angle) * offset.rx() - qSin(angle) * offset.ry(), qSin(angle) * offset.rx() + qCos(angle) * offset.ry());
-          auto correction = newOriginRotated - offset;
-          newPos += correction;
-
-          // Apply
-          scene()->undoStack()->push(new CommandNodeResize(this, newPos, newSize));
-        }
-
+      case RectanglePointLeft:
+        newX += dx;
+        newWidth -= dx;
         break;
       }
 
-    case Rotate:
+      // Snap to grid (if supposed to)
+      QPointF newPos(newX, newY);
+      QSizeF newSize(newWidth, newHeight);
+
+      if (canSnapToGrid())
       {
-        // Sanity check
-        if (!_allowMouseRotate)
-        {
-          qFatal("Node::mouseMoveEvent(): _mode is 'Rotate' although _allowMouseRotate is false");
-          break;
-        }
-
-        auto center = sizeRect().center() + pos();
-        auto delta = center - newMousePos;
-        auto angle = fmod(qAtan2(delta.ry(), delta.rx()) * 180 / M_PI + 270, 360);
-
-        if (QApplication::keyboardModifiers() == Qt::ShiftModifier)
-        {
-          angle = qRound(angle / 15) * 15;
-        }
-
-        scene()->undoStack()->push(new CommandNodeRotate(this, angle));
+        newSize = _settings.snapToGrid(newSize);
       }
+
+      // Minimum size
+      if (newSize.height() < 1)
+      {
+        newSize.setHeight(1);
+
+        if (!qFuzzyCompare(newPos.ry(), pos().ry()))
+        {
+          newPos.setY(posY() + _size.height() - 1);
+        }
+      }
+
+      if (newSize.width() < 1)
+      {
+        newSize.setWidth(1);
+
+        if (!qFuzzyCompare(newPos.rx(), pos().rx()))
+        {
+          newPos.setX(posX() + _size.width() - 1);
+        }
+      }
+
+      // Correct origin
+      auto newOrigin = QPointF(newSize.width() / 2, newSize.height() / 2) + newPos - pos();
+      auto angle = rotation() * M_PI / 180;
+      auto offset = newOrigin - transformOriginPoint();
+      auto newOriginRotated = QPointF(qCos(angle) * offset.rx() - qSin(angle) * offset.ry(), qSin(angle) * offset.rx() + qCos(angle) * offset.ry());
+      auto correction = newOriginRotated - offset;
+      newPos += correction;
+
+      // Apply
+      scene()->undoStack()->push(new CommandNodeResize(this, newPos, newSize));
+    }
+
+    break;
+  }
+
+  case Rotate:
+  {
+    // Sanity check
+    if (!_allowMouseRotate)
+    {
+      qFatal("Node::mouseMoveEvent(): _mode is 'Rotate' although _allowMouseRotate is false");
+      break;
+    }
+
+    auto center = sizeRect().center() + pos();
+    auto delta = center - newMousePos;
+    auto angle = fmod(qAtan2(delta.ry(), delta.rx()) * 180 / M_PI + 270, 360);
+
+    if (QApplication::keyboardModifiers() == Qt::ShiftModifier)
+    {
+      angle = qRound(angle / 15) * 15;
+    }
+
+    scene()->undoStack()->push(new CommandNodeRotate(this, angle));
+  }
   }
 }
 
-void Node::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+void Node::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
   Item::hoverEnterEvent(event);
 }
 
-void Node::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+void Node::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
   Item::hoverLeaveEvent(event);
 
   unsetCursor();
 }
 
-void Node::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
+void Node::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
   Item::hoverMoveEvent(event);
 
@@ -737,25 +734,25 @@ void Node::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
         {
           switch (it.key())
           {
-            case RectanglePointTopLeft:
-            case RectanglePointBottomRight:
-              setCursor(Qt::SizeFDiagCursor);
-              break;
+          case RectanglePointTopLeft:
+          case RectanglePointBottomRight:
+            setCursor(Qt::SizeFDiagCursor);
+            break;
 
-            case RectanglePointBottom:
-            case RectanglePointTop:
-              setCursor(Qt::SizeVerCursor);
-              break;
+          case RectanglePointBottom:
+          case RectanglePointTop:
+            setCursor(Qt::SizeVerCursor);
+            break;
 
-            case RectanglePointBottomLeft:
-            case RectanglePointTopRight:
-              setCursor(Qt::SizeBDiagCursor);
-              break;
+          case RectanglePointBottomLeft:
+          case RectanglePointTopRight:
+            setCursor(Qt::SizeBDiagCursor);
+            break;
 
-            case RectanglePointRight:
-            case RectanglePointLeft:
-              setCursor(Qt::SizeHorCursor);
-              break;
+          case RectanglePointRight:
+          case RectanglePointLeft:
+            setCursor(Qt::SizeHorCursor);
+            break;
           }
 
           break;
@@ -809,7 +806,7 @@ QRectF Node::boundingRect() const
   return rect;
 }
 
-void Node::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void Node::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
   Q_UNUSED(option)
   Q_UNUSED(widget)
@@ -887,61 +884,61 @@ bool Node::canSnapToGrid() const
   return Item::snapToGrid() && fmod(rotation(), 90) == 0;
 }
 
-QVariant Node::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value)
+QVariant Node::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
 {
   switch (change)
   {
-    case QGraphicsItem::ItemPositionChange:
+  case QGraphicsItem::ItemPositionChange:
+  {
+    QPointF newPos = value.toPointF();
+
+    Scene *currentScene = scene();
+
+    // TODO: consider the rotation case
+    if (currentScene != nullptr)
+    {
+      QRectF rect = currentScene->sceneRect();
+      QPointF diagonalPos = newPos + QPointF(width(), height());
+
+      // Keep the item rect inside of the sheet
+      if (!rect.contains(newPos) || !rect.contains(diagonalPos))
       {
-        QPointF newPos = value.toPointF();
-
-        Scene* currentScene = scene();
-
-        // TODO: consider the rotation case
-        if (currentScene != nullptr)
-        {
-          QRectF rect = currentScene->sceneRect();
-          QPointF diagonalPos = newPos + QPointF(width(), height());
-
-          // Keep the item rect inside of the sheet
-          if (!rect.contains(newPos) || !rect.contains(diagonalPos))
-          {
-            newPos.setX(qMin(rect.right() - width(), qMax(newPos.x(), rect.left())));
-            newPos.setY(qMin(rect.bottom() - height(), qMax(newPos.y(), rect.top())));
-
-            return newPos;
-          }
-        }
-
-        if (canSnapToGrid())
-        {
-          // If it is rotated 90 or 270 degrees and the difference between
-          // the height and width is odd then the position needs to be
-          // offset by half a grid unit vertically and horizontally.
-          if ((qFuzzyCompare(qAbs(rotation()), 90) || qFuzzyCompare(qAbs(rotation()), 270)) &&
-              (fmod(_size.width() / _settings.gridSize - _size.height() / _settings.gridSize, 2) != 0))
-          {
-            newPos.setX(qCeil(newPos.rx() / _settings.gridSize)*_settings.gridSize);
-            newPos.setY(qCeil(newPos.ry() / _settings.gridSize)*_settings.gridSize);
-            newPos -= QPointF(_settings.gridSize / 2, _settings.gridSize / 2);
-          }
-          else
-          {
-            newPos = _settings.snapToGrid(newPos);
-          }
-        }
+        newPos.setX(qMin(rect.right() - width(), qMax(newPos.x(), rect.left())));
+        newPos.setY(qMin(rect.bottom() - height(), qMax(newPos.y(), rect.top())));
 
         return newPos;
       }
+    }
 
-    default:
-      return Item::itemChange(change, value);
+    if (canSnapToGrid())
+    {
+      // If it is rotated 90 or 270 degrees and the difference between
+      // the height and width is odd then the position needs to be
+      // offset by half a grid unit vertically and horizontally.
+      if ((qFuzzyCompare(qAbs(rotation()), 90) || qFuzzyCompare(qAbs(rotation()), 270)) &&
+          (fmod(_size.width() / _settings.gridSize - _size.height() / _settings.gridSize, 2) != 0))
+      {
+        newPos.setX(qCeil(newPos.rx() / _settings.gridSize) * _settings.gridSize);
+        newPos.setY(qCeil(newPos.ry() / _settings.gridSize) * _settings.gridSize);
+        newPos -= QPointF(_settings.gridSize / 2, _settings.gridSize / 2);
+      }
+      else
+      {
+        newPos = _settings.snapToGrid(newPos);
+      }
+    }
+
+    return newPos;
+  }
+
+  default:
+    return Item::itemChange(change, value);
   }
 }
 
-void Node::paintResizeHandles(QPainter& painter)
+void Node::paintResizeHandles(QPainter &painter)
 {
-  for (const QRectF& rect : resizeHandles())
+  for (const QRectF &rect : resizeHandles())
   {
     // Handle pen
     QPen handlePen;
@@ -966,7 +963,7 @@ void Node::paintResizeHandles(QPainter& painter)
   }
 }
 
-void Node::paintRotateHandle(QPainter& painter)
+void Node::paintRotateHandle(QPainter &painter)
 {
   auto rect = rotationHandle();
 
@@ -994,7 +991,7 @@ void Node::paintRotateHandle(QPainter& painter)
 
 void Node::propagateSettings()
 {
-  for (const auto& connector : connectors())
+  for (const auto &connector : connectors())
   {
     connector->setSettings(_settings);
   }

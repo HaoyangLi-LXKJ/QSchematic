@@ -10,15 +10,15 @@ namespace QSchematic
         public QSchematic::Wire
     {
         Q_OBJECT
-        Q_DISABLE_COPY(WireRoundedCorners)
+        Q_DISABLE_COPY_MOVE(WireRoundedCorners)
 
     public:
         WireRoundedCorners(int type = Item::WireRoundedCornersType, QGraphicsItem* parent = nullptr);
-        virtual ~WireRoundedCorners() override = default;
+        ~WireRoundedCorners() override = default;
 
-        virtual gpds::container to_container() const override;
-        virtual void from_container(const gpds::container& container) override;
-        virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) override;
+        gpds::container to_container() const override;
+        void from_container(const gpds::container& container) override;
+        void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) override;
 
     private:
         enum QuarterCircleSegment {

@@ -19,27 +19,26 @@
 const qreal BOUNDING_RECT_PADDING = 6.0;
 const qreal HANDLE_SIZE = 3.0;
 const qreal WIRE_SHAPE_PADDING = 10;
-const QColor COLOR                     = QColor("#000000");
-const QColor COLOR_HIGHLIGHTED         = QColor("#dc2479");
-const QColor COLOR_SELECTED            = QColor("#0f16af");
+const QColor COLOR = QColor("#000000");
+const QColor COLOR_HIGHLIGHTED = QColor("#dc2479");
+const QColor COLOR_SELECTED = QColor("#0f16af");
 
 using namespace QSchematic;
 
 class PointWithIndex
 {
 public:
-  PointWithIndex(int index, const QPoint& point) : index(index), point(point) {}
+  PointWithIndex(int index, const QPoint &point) : index(index), point(point) {}
   int index;
   QPoint point;
 
-  bool operator<(const PointWithIndex& other) const
+  bool operator<(const PointWithIndex &other) const
   {
     return index < other.index;
   }
 };
 
-Wire::Wire(int type, QGraphicsItem* parent) :
-  Item(type, parent), _renameAction(nullptr)
+Wire::Wire(int type, QGraphicsItem *parent) : Item(type, parent), _renameAction(nullptr)
 {
   _pointToMoveIndex = -1;
   _lineSegmentToMoveIndex = -1;
@@ -87,20 +86,20 @@ gpds::container Wire::to_container() const
   return rootContainer;
 }
 
-void Wire::from_container(const gpds::container& container)
+void Wire::from_container(const gpds::container &container)
 {
   // Root
-  Item::from_container(*container.get_value<gpds::container*>("item").value());
+  Item::from_container(*container.get_value<gpds::container *>("item").value());
 
   // Points
-  const gpds::container* pointsContainer = container.get_value<gpds::container*>("points").value_or(nullptr);
+  const gpds::container *pointsContainer = container.get_value<gpds::container *>("points").value_or(nullptr);
 
   if (pointsContainer)
   {
-    auto points = pointsContainer->get_values<gpds::container*>("point");
+    auto points = pointsContainer->get_values<gpds::container *>("point");
     // Sort points by index
-    std::sort(points.begin(), points.end(), [](gpds::container * a, gpds::container * b)
-    {
+    std::sort(points.begin(), points.end(), [](gpds::container *a, gpds::container *b)
+              {
       std::optional<int> index1 = a->get_attribute<int>("index");
       std::optional<int> index2 = b->get_attribute<int>("index");
 
@@ -110,10 +109,9 @@ void Wire::from_container(const gpds::container& container)
         return false;
       }
 
-      return index1.value() < index2.value();
-    });
+      return index1.value() < index2.value(); });
 
-    for (const gpds::container* pointContainer : points)
+    for (const gpds::container *pointContainer : points)
     {
       m_points.append(point(pointContainer->get_value<double>("x").value_or(0),
                             pointContainer->get_value<double>("y").value_or(0)));
@@ -126,12 +124,12 @@ void Wire::from_container(const gpds::container& container)
 std::shared_ptr<Item> Wire::deepCopy() const
 {
   auto clone = std::make_shared<Wire>(type(), parentItem());
-  copyAttributes(*(clone.get()));
+  copyAttributes(*clone);
 
   return clone;
 }
 
-void Wire::copyAttributes(Wire& dest) const
+void Wire::copyAttributes(Wire &dest) const
 {
   Item::copyAttributes(dest);
 
@@ -173,7 +171,7 @@ QVector<point> Wire::wirePointsRelative() const
 {
   QVector<point> relativePoints(m_points);
 
-  for (point& point : relativePoints)
+  for (point &point : relativePoints)
   {
     bool isJunction = point.is_junction();
     point = point.toPointF() - pos();
@@ -187,7 +185,7 @@ QVector<QPointF> Wire::pointsRelative() const
 {
   QVector<QPointF> points;
 
-  for (const point& point : m_points)
+  for (const point &point : m_points)
   {
     points << point.toPointF() - pos();
   }
@@ -199,7 +197,7 @@ QVector<QPointF> Wire::pointsAbsolute() const
 {
   QVector<QPointF> points;
 
-  for (const point& point : m_points)
+  for (const point &point : m_points)
   {
     points << point.toPointF();
   }
@@ -210,10 +208,10 @@ QVector<QPointF> Wire::pointsAbsolute() const
 void Wire::calculateBoundingRect()
 {
   // Find top-left most point
-  const int& intMaxValue = std::numeric_limits<int>::max();
+  const int &intMaxValue = std::numeric_limits<int>::max();
   QPointF topLeft(intMaxValue, intMaxValue);
 
-  for (auto& point : wirePointsRelative())
+  for (auto &point : wirePointsRelative())
   {
     if (point.x() < topLeft.x())
     {
@@ -227,10 +225,10 @@ void Wire::calculateBoundingRect()
   }
 
   // Find bottom-right most point
-  const int& intMinValue = std::numeric_limits<int>::min();
+  const int &intMinValue = std::numeric_limits<int>::min();
   QPointF bottomRight(intMinValue, intMinValue);
 
-  for (auto& point : wirePointsRelative())
+  for (auto &point : wirePointsRelative())
   {
     if (point.x() > bottomRight.x())
     {
@@ -247,24 +245,24 @@ void Wire::calculateBoundingRect()
   _rect = QRectF(topLeft, bottomRight);
 }
 
-void Wire::setRenameAction(QAction* action)
+void Wire::setRenameAction(QAction *action)
 {
   _renameAction = action;
 }
 
-void Wire::prepend_point(const QPointF& point)
+void Wire::prepend_point(const QPointF &point)
 {
   wire::prepend_point(point);
   emit pointMoved(*this, wirePointsRelative().first());
 }
 
-void Wire::append_point(const QPointF& point)
+void Wire::append_point(const QPointF &point)
 {
   wire::append_point(point);
   emit pointMoved(*this, wirePointsRelative().last());
 }
 
-void Wire::insert_point(int index, const QPointF& point)
+void Wire::insert_point(int index, const QPointF &point)
 {
   wire::insert_point(index, point);
   emit pointMoved(*this, wirePointsRelative()[index]);
@@ -294,7 +292,7 @@ void Wire::removeLastPoint()
   calculateBoundingRect();
 }
 
-void Wire::move_point_to(int index, const QPointF& moveTo)
+void Wire::move_point_to(int index, const QPointF &moveTo)
 {
   prepareGeometryChange();
   wire_system::wire::move_point_to(index, moveTo);
@@ -304,7 +302,7 @@ void Wire::move_point_to(int index, const QPointF& moveTo)
   update();
 }
 
-void Wire::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void Wire::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
   // Check wheter we clicked on a handle
   if (isSelected())
@@ -330,7 +328,7 @@ void Wire::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
     for (int i = 0; i < lines.count(); i++)
     {
-      const line& line = lines.at(i);
+      const line &line = lines.at(i);
 
       if (line.contains_point(event->scenePos(), 1))
       {
@@ -341,7 +339,6 @@ void Wire::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
       _lineSegmentToMoveIndex = -1;
     }
-
   }
   else
   {
@@ -352,7 +349,7 @@ void Wire::mousePressEvent(QGraphicsSceneMouseEvent* event)
   _prevMousePos = event->scenePos();
 }
 
-void Wire::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void Wire::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
   Item::mouseReleaseEvent(event);
 
@@ -365,7 +362,7 @@ void Wire::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   simplify();
 }
 
-void Wire::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+void Wire::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
   QPointF curPos = event->scenePos();
   bool ctrlPressed = QApplication::keyboardModifiers() & Qt::ControlModifier;
@@ -440,7 +437,7 @@ void Wire::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   _prevMousePos = curPos;
 }
 
-void Wire::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
+void Wire::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
   // Ignore if there is no rename action
   if (!_renameAction)
@@ -475,19 +472,19 @@ void Wire::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
   }
 }
 
-void Wire::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+void Wire::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
   Item::hoverEnterEvent(event);
 }
 
-void Wire::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+void Wire::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
   Item::hoverLeaveEvent(event);
 
   unsetCursor();
 }
 
-void Wire::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
+void Wire::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
   Item::hoverMoveEvent(event);
 
@@ -518,7 +515,7 @@ void Wire::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
   for (int i = 0; i < lines.count(); i++)
   {
     // Retrieve the line segment
-    const line& line = lines.at(i);
+    const line &line = lines.at(i);
 
     // Set the appropriate cursor
     if (line.contains_point(event->scenePos(), 1))
@@ -543,7 +540,7 @@ void Wire::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
   unsetCursor();
 }
 
-void Wire::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void Wire::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
   Q_UNUSED(option);
   Q_UNUSED(widget);
@@ -590,13 +587,13 @@ void Wire::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWid
   // Draw the actual line
   painter->setPen(penLine);
   painter->setBrush(brushLine);
-  const auto& points = pointsRelative();
+  const auto &points = pointsRelative();
   painter->drawPolyline(points.constData(), points.count());
 
   // Draw the junction poins
   int junctionRadius = 4;
 
-  for (const point& wirePoint : wirePointsRelative())
+  for (const point &wirePoint : wirePointsRelative())
   {
     if (wirePoint.is_junction())
     {
@@ -613,7 +610,7 @@ void Wire::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWid
     painter->setPen(penHandle);
     painter->setBrush(brushHandle);
 
-    for (const QPointF& point : points)
+    for (const QPointF &point : points)
     {
       QRectF handleRect(point.x() - HANDLE_SIZE, point.y() - HANDLE_SIZE, 2 * HANDLE_SIZE, 2 * HANDLE_SIZE);
       painter->drawRect(handleRect);
@@ -633,97 +630,97 @@ void Wire::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWid
   }
 }
 
-QVariant Wire::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value)
+QVariant Wire::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
 {
   switch (change)
   {
 
-    case ItemPositionChange:
+  case ItemPositionChange:
+  {
+    // Move the wire
+    QPointF newPos = QPointF(_settings.snapToGrid(value.toPointF())) + _offset;
+
+    Scene *currentScene = scene();
+
+    if (currentScene != nullptr)
+    {
+      QRectF rect = currentScene->sceneRect();
+
+      // Keep the item rect inside of the sheet
+      if (!rect.contains(boundingRect().topLeft() + newPos) || !rect.contains(boundingRect().bottomRight() + newPos))
       {
-        // Move the wire
-        QPointF newPos = QPointF(_settings.snapToGrid(value.toPointF())) + _offset;
+        newPos.setX(qMin(rect.right() - boundingRect().right(), qMax(newPos.x(), rect.left() - boundingRect().left())));
+        newPos.setY(qMin(rect.bottom() - boundingRect().bottom(), qMax(newPos.y(), rect.top() - boundingRect().top())));
 
-        Scene* currentScene = scene();
+        newPos = QPointF(_settings.snapToGrid(newPos)) + _offset;
+      }
+    }
 
-        if (currentScene != nullptr)
+    QVector2D movedBy = QVector2D(newPos - pos());
+    move(movedBy);
+    return newPos;
+  }
+
+  case ItemPositionHasChanged:
+    if (!scene())
+    {
+      break;
+    }
+
+    // Move points to their connectors
+    for (const auto &conn : scene()->connectors())
+    {
+      bool isSelected = false;
+
+      // Check if the connector's node is selected
+      for (const auto &item : scene()->selectedTopLevelItems())
+      {
+        auto node = item->sharedPtr<Node>();
+
+        if (node)
         {
-          QRectF rect = currentScene->sceneRect();
-
-          // Keep the item rect inside of the sheet
-          if (!rect.contains(boundingRect().topLeft() + newPos) || !rect.contains(boundingRect().bottomRight() + newPos))
+          if (node->connectors().contains(conn))
           {
-            newPos.setX(qMin(rect.right() - boundingRect().right(), qMax(newPos.x(), rect.left() - boundingRect().left())));
-            newPos.setY(qMin(rect.bottom() - boundingRect().bottom(), qMax(newPos.y(), rect.top() - boundingRect().top())));
-
-            newPos = QPointF(_settings.snapToGrid(newPos)) + _offset;
+            isSelected = true;
+            break;
           }
         }
-
-        QVector2D movedBy = QVector2D(newPos - pos());
-        move(movedBy);
-        return newPos;
       }
 
-    case ItemPositionHasChanged:
-      if (!scene())
+      // Move point onto the connector
+      if (!isSelected && scene()->wire_manager()->attached_wire(conn.get()) == this)
       {
-        break;
+        int index = scene()->wire_manager()->attached_point(conn.get());
+        QVector2D moveBy(conn->scenePos() - pointsAbsolute().at(index));
+        move_point_by(index, moveBy);
       }
+    }
 
-      // Move points to their connectors
-      for (const auto& conn : scene()->connectors())
-      {
-        bool isSelected = false;
+    break;
 
-        // Check if the connector's node is selected
-        for (const auto& item : scene()->selectedTopLevelItems())
-        {
-          auto node = item->sharedPtr<Node>();
+  case ItemSelectedHasChanged:
+    if (value.toBool())
+    {
+      setZValue(zValue() + 1);
+    }
+    else
+    {
+      setZValue(zValue() - 1);
+    }
 
-          if (node)
-          {
-            if (node->connectors().contains(conn))
-            {
-              isSelected = true;
-              break;
-            }
-          }
-        }
+    break;
 
-        // Move point onto the connector
-        if (!isSelected && scene()->wire_manager()->attached_wire(conn.get()) == this)
-        {
-          int index = scene()->wire_manager()->attached_point(conn.get());
-          QVector2D moveBy(conn->scenePos() - pointsAbsolute().at(index));
-          move_point_by(index, moveBy);
-        }
-      }
-
-      break;
-
-    case ItemSelectedHasChanged:
-      if (value.toBool())
-      {
-        setZValue(zValue() + 1);
-      }
-      else
-      {
-        setZValue(zValue() - 1);
-      }
-
-      break;
-
-    default:
-      return Item::itemChange(change, value);
+  default:
+    return Item::itemChange(change, value);
   }
 
   return Item::itemChange(change, value);
 }
 
-void Wire::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
+void Wire::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
 {
   QMenu menu;
-  QAction* actionAdd = menu.addAction("Add point");
+  QAction *actionAdd = menu.addAction("Add point");
   // If there is a point nearby
   int pointIndex = -1;
 
@@ -736,7 +733,7 @@ void Wire::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
     }
   }
 
-  QAction* actionRemove = nullptr;
+  QAction *actionRemove = nullptr;
 
   if (points_count() > 2 && pointIndex != -1)
   {
@@ -759,7 +756,7 @@ void Wire::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
   // Show checkbox to toggle the visibility of the label
   if (label && !net()->name().isEmpty())
   {
-    QAction* showAction = menu.addAction("Label visible");
+    QAction *showAction = menu.addAction("Label visible");
     showAction->setCheckable(true);
     showAction->setChecked(label->isVisible());
 
@@ -767,7 +764,7 @@ void Wire::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
   }
 
   bool labelWasVisible = label && label->isVisible();
-  QAction* command = menu.exec(event->screenPos());
+  QAction *command = menu.exec(event->screenPos());
 
   // Add a point at the cursor
   if (command == actionAdd)
@@ -796,20 +793,19 @@ void Wire::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
   }
 }
 
-void Wire::label_to_cursor(const QPointF& scenePos, std::shared_ptr<Label>& label) const
+void Wire::label_to_cursor(const QPointF &scenePos, std::shared_ptr<Label> &label) const
 {
   // Find line segment
   line seg;
   QList<line> lines = line_segments();
 
-  for (const auto& line : lines)
+  for (const auto &line : lines)
   {
     if (line.contains_point(scenePos, WIRE_SHAPE_PADDING / 2))
     {
       seg = line;
       break;
     }
-
   }
 
   // This should never happen
@@ -848,7 +844,7 @@ void Wire::label_to_cursor(const QPointF& scenePos, std::shared_ptr<Label>& labe
     pos.setY(point.y() - _settings.gridSize / 2);
   }
 
-  label->setParentItem((QGraphicsItem*) this);
+  label->setParentItem((QGraphicsItem *)this);
   label->setPos(pos - Wire::pos());
 }
 

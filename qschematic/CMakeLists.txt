@@ -1,7 +1,8 @@
 # Project settings
 project(qschematic
-    VERSION 1.1.0
+    VERSION 1.2.0
     LANGUAGES CXX
+    HOMEPAGE_URL https://github.com/simulton/qschematic
 )
 
 # External dependencies
@@ -94,7 +95,6 @@ add_subdirectory(wire_system)
 add_subdirectory(gpds)
 # Setup target names
 set(TARGET_BASE_NAME "qschematic")
-set(TARGET_OBJS      ${TARGET_BASE_NAME}-objs)
 set(TARGET_STATIC    ${TARGET_BASE_NAME}-static)
 # set(TARGET_SHARED    ${TARGET_BASE_NAME}-shared)
 
@@ -159,13 +159,6 @@ function(setup_target_common target)
     )
 endfunction()
 
-################################################################################
-# Object library                                                               #
-################################################################################
-
-add_library(${TARGET_OBJS} OBJECT)
-setup_target_common(${TARGET_OBJS})
-
 
 ################################################################################
 # Shared library                                                               #
@@ -213,7 +206,6 @@ install(
 # Targets
 install(
     TARGETS
-        ${TARGET_OBJS}
         ${TARGET_STATIC}
         # ${TARGET_SHARED}
     EXPORT qschematic-targets
