@@ -61,8 +61,8 @@ gpds::container Connector::to_container() const
   gpds::container root;
   addItemTypeIdToContainer(root);
   root.add_value("item", Item::to_container());
-  root.add_value("snap_policy", snapPolicy());
-  root.add_value("force_text_direction", static_cast<int>(forceTextDirection()));
+  root.add_value("snap_policy", static_cast<int>(snapPolicy()));
+  root.add_value("force_text_direction", forceTextDirection());
   root.add_value("text_direction", static_cast<int>(textDirection()));
   root.add_value("label", _label->to_container());
 
