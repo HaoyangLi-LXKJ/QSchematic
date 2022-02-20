@@ -62,8 +62,8 @@ gpds::container Connector::to_container() const
   addItemTypeIdToContainer(root);
   root.add_value("item", Item::to_container());
   root.add_value("snap_policy", snapPolicy());
-  root.add_value("force_text_direction", forceTextDirection());
-  root.add_value("text_direction", textDirection());
+  root.add_value("force_text_direction", static_cast<int>(forceTextDirection()));
+  root.add_value("text_direction", static_cast<int>(textDirection()));
   root.add_value("label", _label->to_container());
 
   return root;
@@ -80,8 +80,8 @@ void Connector::from_container(const gpds::container& container)
 
 std::shared_ptr<Item> Connector::deepCopy() const
 {
-    auto clone = std::make_shared<Connector>(type(), gridPos(), text(), parentItem());
-    copyAttributes(*clone);
+  auto clone = std::make_shared<Connector>(type(), gridPos(), text(), parentItem());
+  copyAttributes(*clone);
 
   return clone;
 }
@@ -179,56 +179,56 @@ QVariant Connector::itemChange(QGraphicsItem::GraphicsItemChange change, const Q
   {
     // Snap to whatever we're supposed to snap to
     case QGraphicsItem::ItemPositionChange:
+    {
+      QPointF proposedPos = value.toPointF();
+
+      // Retrieve parent Node's size rect
+      const Node* parentNode = qgraphicsitem_cast<const Node*>(parentItem());
+
+      if (!parentNode)
       {
-        QPointF proposedPos = value.toPointF();
-
-        // Retrieve parent Node's size rect
-        const Node* parentNode = qgraphicsitem_cast<const Node*>(parentItem());
-
-        if (!parentNode)
-        {
-          return proposedPos;
-        }
-
-        QRectF parentNodeSizeRect(0, 0, parentNode->size().width(), parentNode->size().height());
-
-        // Honor snap policy
-        switch (_snapPolicy)
-        {
-          case Anywhere:
-            break;
-
-          case NodeSizerect:
-            proposedPos = Utils::clipPointToRect(proposedPos, parentNodeSizeRect);
-            break;
-
-          case NodeSizerectOutline:
-            proposedPos = Utils::clipPointToRectOutline(proposedPos, parentNodeSizeRect);
-            break;
-        }
-
-        // Honor snap-to-grid
-        if (parentNode->canSnapToGrid() && snapToGrid())
-        {
-          proposedPos = _settings.snapToGrid(proposedPos);
-        }
-
         return proposedPos;
       }
 
-    case QGraphicsItem::ItemPositionHasChanged:
+      QRectF parentNodeSizeRect(0, 0, parentNode->size().width(), parentNode->size().height());
+
+      // Honor snap policy
+      switch (_snapPolicy)
       {
-        calculateTextDirection();
-        alignLabel();
-        break;
+        case Anywhere:
+          break;
+
+        case NodeSizerect:
+          proposedPos = Utils::clipPointToRect(proposedPos, parentNodeSizeRect);
+          break;
+
+        case NodeSizerectOutline:
+          proposedPos = Utils::clipPointToRectOutline(proposedPos, parentNodeSizeRect);
+          break;
       }
 
-    case QGraphicsItem::ItemParentHasChanged:
+      // Honor snap-to-grid
+      if (parentNode->canSnapToGrid() && snapToGrid())
       {
-        calculateTextDirection();
-        alignLabel();
-        break;
+        proposedPos = _settings.snapToGrid(proposedPos);
       }
+
+      return proposedPos;
+    }
+
+    case QGraphicsItem::ItemPositionHasChanged:
+    {
+      calculateTextDirection();
+      alignLabel();
+      break;
+    }
+
+    case QGraphicsItem::ItemParentHasChanged:
+    {
+      calculateTextDirection();
+      alignLabel();
+      break;
+    }
 
     default:
       break;
