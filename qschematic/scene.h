@@ -130,6 +130,8 @@ protected:
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
   void drawBackground(QPainter* painter, const QRectF& rect) override;
 
+protected:
+  Item* _highlightedItem;
   /* This gets called just before the item is actually being moved by moveBy. Subclasses may
    * implement this to implement snapping to elements other than the grid
    */
@@ -173,7 +175,7 @@ private:
   QPointF _initialCursorPosition;
   QUndoStack* _undoStack;
   std::shared_ptr<wire_system::manager> m_wire_manager;
-  Item* _highlightedItem;
+//  Item* _highlightedItem;
   QTimer* _popupTimer;
   std::shared_ptr<QGraphicsProxyWidget> _popup;
 
