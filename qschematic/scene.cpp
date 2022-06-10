@@ -197,7 +197,8 @@ void Scene::from_container(const gpds::container& container)
     for (const gpds::container* netContainer : netsContainer->get_values<gpds::container*>("net"))
     {
       Q_ASSERT(netContainer);
-      auto net = std::make_shared<WireNet>();
+      //      auto net = std::make_shared<WireNet>();
+      auto net = createWireNet();
       net->setScene(this);
       net->set_manager(wire_manager().get());
       net->from_container(*netContainer);
@@ -1320,6 +1321,27 @@ QList<std::shared_ptr<Label>> Scene::labels() const
   }
 
   return labels;
+}
+
+void Scene::setWireNetFactory(std::function<std::shared_ptr<WireNet> ()> func)
+{
+  _wireNetFactory = func;
+}
+
+std::shared_ptr<WireNet> Scene::createWireNet()
+{
+  std::shared_ptr<WireNet> wn;
+
+  if (_wireNetFactory.has_value())
+  {
+    wn = _wireNetFactory.value()();
+  }
+  else
+  {
+    wn = std::make_shared<class WireNet>();
+  }
+
+  return wn;
 }
 
 const QColor& Scene::backgroundColor() const

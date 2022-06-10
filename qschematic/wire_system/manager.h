@@ -66,7 +66,7 @@ public:
   void connector_moved(const connectable* connector);
 
   // Added for SLS
-  QList<const connectable*> net_connections(std::shared_ptr<net> net);
+  QList<const connectable*> net_connections(net* net);
 signals:
   void wire_point_moved(wire& wire, int index);
 

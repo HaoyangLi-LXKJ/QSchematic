@@ -237,8 +237,8 @@ TEST_SUITE("Manager")
     REQUIRE(manager.attached_point(&conn2) == 1);
 
     // Make sure we can get the connectors from the wire net
-    REQUIRE(manager.net_connections(wire->net()).contains(&conn1));
-    REQUIRE(manager.net_connections(wire->net()).contains(&conn2));
+    REQUIRE(manager.net_connections(wire->net().get()).contains(&conn1));
+    REQUIRE(manager.net_connections(wire->net().get()).contains(&conn2));
 
     // Insert a point between the two points
     wire->insert_point(1, QPointF(40, 40));

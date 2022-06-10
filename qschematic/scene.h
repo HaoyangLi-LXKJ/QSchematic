@@ -109,6 +109,9 @@ public:
   void setGridColor(const QColor& newGridColor);
 
   QList<std::shared_ptr<Label>> labels() const;
+
+  void setWireNetFactory(std::function<std::shared_ptr<WireNet>()> func);
+  std::shared_ptr<WireNet> createWireNet();
 signals:
   void modeChanged(int newMode);
   void isDirtyChanged(bool isDirty);
@@ -182,6 +185,8 @@ private:
   // The section below is added by PT for SLS features
   QColor _backgroundColor = Qt::white;
   QColor _gridColor = Qt::gray;
+
+  std::optional<std::function<std::shared_ptr<WireNet>()>> _wireNetFactory;
 
 private slots:
   void updateNodeConnections(const Node* node) const;

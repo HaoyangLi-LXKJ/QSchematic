@@ -537,10 +537,15 @@ void manager::connector_moved(const connectable* connector)
   }
 }
 
-QList<const connectable*> manager::net_connections(std::shared_ptr<net> net)
+QList<const connectable*> manager::net_connections(net* net)
 {
   QList<const connectable*> result;
   std::set<wire*> wires;
+
+  if (!net)
+  {
+    return result;
+  }
 
   for (std::shared_ptr<wire> w : net->wires())
   {
