@@ -15,6 +15,7 @@ enum CommandType
   WirePointMoveCommandType,
   LabelChangeFontSizeCommandType,
 
+  LabelRotateCommandType,
   QSchematicCommandUserType = 1000
 };
 }

@@ -45,6 +45,9 @@ set(SOURCES_PRIVATE
     settings.cpp
     utils.cpp
     view.cpp
+
+    #Added by PT
+    commands/commandlabelrotate.cpp
 )
 
 # List of header files
@@ -88,6 +91,8 @@ set(HEADERS_PUBLIC
     types.h
     utils.h
     view.h
+    #Added by PT
+    commands/commandlabelrotate.h
 )
 
 # Add the wire system

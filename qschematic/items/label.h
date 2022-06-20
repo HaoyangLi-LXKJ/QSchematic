@@ -20,6 +20,13 @@ namespace QSchematic
     void doubleClicked();
 
   public:
+    enum Mode {
+        None,
+//        Resize,
+        Rotate,
+    };
+    Q_ENUM(Mode)
+
     Label(int type = Item::LabelType, QGraphicsItem *parent = nullptr);
     ~Label() override = default;
 
@@ -43,12 +50,26 @@ namespace QSchematic
     const QColor &textColor() const;
     void setTextColor(const QColor &newText_color);
 
-  protected:
+    // Added by PT to rotate the label
+    bool allowMouseRotate() const;
+    void setAllowMouseRotate(bool newAllowMouseRotate);
+    bool canSnapToGrid() const;
+    Mode mode() const;
+    void setMode(Mode newMode);
+    QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value) override;
+    void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
+    void update() override;
+protected:
     void copyAttributes(Label &dest) const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+    void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 
-    QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value) override;
+    // Added by PT to rotate the label
+    QRectF rotationHandle() const;
+    virtual void paintRotateHandle(QPainter& painter);
 
   private:
     void calculateTextRect();
@@ -61,6 +82,9 @@ namespace QSchematic
 
     // Added by PT to change the text color
     QColor _text_color = Qt::black;
+    // Added by PT to rotate the label
+    Mode _mode;
+    bool _allowMouseRotate;
   };
 
 }

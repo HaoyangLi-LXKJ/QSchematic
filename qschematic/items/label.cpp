@@ -1,9 +1,16 @@
+#include <QApplication>
+#include <QGraphicsSceneMouseEvent>
 #include <QFontMetricsF>
 #include <QPainter>
 #include <QPen>
 #include <QBrush>
+#include <QtMath>
 #include "label.h"
+#include "../commands/commandlabelrotate.h"
 #include "../scene.h"
+#include "../utils.h"
+#include "qgraphicssceneevent.h"
+
 
 const QColor COLOR_LABEL = QColor("#000000");
 const QColor COLOR_LABEL_HIGHLIGHTED = QColor("#dc2479");
@@ -11,8 +18,10 @@ const qreal LABEL_TEXT_PADDING = 2;
 
 using namespace QSchematic;
 
-Label::Label(int type, QGraphicsItem *parent) : Item(type, parent),
-                                                _hasConnectionPoint(true)
+Label::Label(int type, QGraphicsItem* parent) : Item(type, parent),
+  _hasConnectionPoint(true),
+  _mode(None),
+  _allowMouseRotate(true)
 {
   setSnapToGrid(false);
 }
@@ -31,17 +40,17 @@ gpds::container Label::to_container() const
   root.add_value("item", Item::to_container());
   root.add_value("text", text().toStdString());
   root.add_value("connection_point", connectionPoint);
-
+  root.add_value("allow_mouse_rotate", allowMouseRotate());
   return root;
 }
 
-void Label::from_container(const gpds::container &container)
+void Label::from_container(const gpds::container& container)
 {
-  Item::from_container(*container.get_value<gpds::container *>("item").value());
+  Item::from_container(*container.get_value<gpds::container*>("item").value());
   setText(QString::fromStdString(container.get_value<std::string>("text").value_or("")));
 
   // Connection point
-  const gpds::container *connectionPointContainer = container.get_value<gpds::container *>("connection_point").value_or(nullptr);
+  const gpds::container* connectionPointContainer = container.get_value<gpds::container*>("connection_point").value_or(nullptr);
 
   if (connectionPointContainer)
   {
@@ -55,6 +64,9 @@ void Label::from_container(const gpds::container &container)
     _connectionPoint.setX(connectionPointContainer->get_value<double>("x").value_or(0));
     _connectionPoint.setY(connectionPointContainer->get_value<double>("y").value_or(0));
   }
+
+  setAllowMouseRotate(container.get_value<bool>("allow_mouse_rotate").value_or(true));
+
 }
 
 std::shared_ptr<Item> Label::deepCopy() const
@@ -65,7 +77,7 @@ std::shared_ptr<Item> Label::deepCopy() const
   return clone;
 }
 
-void Label::copyAttributes(Label &dest) const
+void Label::copyAttributes(Label& dest) const
 {
   // Base class
   Item::copyAttributes(dest);
@@ -76,6 +88,8 @@ void Label::copyAttributes(Label &dest) const
   dest._textRect = _textRect;
   dest._hasConnectionPoint = _hasConnectionPoint;
   dest._connectionPoint = _connectionPoint;
+  dest._allowMouseRotate = _allowMouseRotate;
+  dest._mode = _mode;
 }
 
 QRectF Label::boundingRect() const
@@ -87,24 +101,30 @@ QRectF Label::boundingRect() const
     rect = rect.united(QRectF(_textRect.center(), mapFromParent(_connectionPoint)));
   }
 
+  // Rotate handle
+  if (isSelected() && _allowMouseRotate)
+  {
+    rect = rect.united(rotationHandle());
+  }
+
   return rect;
 }
 
 QPainterPath Label::shape() const
 {
   QPainterPath path;
-  path.addRect(_textRect);
+  path.addRect(boundingRect());
   return path;
 }
 
-void Label::setText(const QString &text)
+void Label::setText(const QString& text)
 {
   _text = text;
   calculateTextRect();
   emit textChanged(_text);
 }
 
-void Label::setFont(const QFont &font)
+void Label::setFont(const QFont& font)
 {
   _font = font;
 
@@ -121,11 +141,11 @@ bool Label::hasConnectionPoint() const
   return _hasConnectionPoint;
 }
 
-void Label::setConnectionPoint(const QPointF &connectionPoint)
+void Label::setConnectionPoint(const QPointF& connectionPoint)
 {
   _connectionPoint = connectionPoint;
 
-  Item::update();
+  update();
 }
 
 void Label::calculateTextRect()
@@ -135,15 +155,41 @@ void Label::calculateTextRect()
   _textRect.adjust(-LABEL_TEXT_PADDING, -LABEL_TEXT_PADDING, LABEL_TEXT_PADDING, LABEL_TEXT_PADDING);
 }
 
-const QColor &Label::textColor() const
+Label::Mode Label::mode() const
+{
+  return _mode;
+}
+
+void Label::setMode(Mode newMode)
+{
+  _mode = newMode;
+}
+
+bool Label::allowMouseRotate() const
+{
+  return _allowMouseRotate;
+}
+
+void Label::setAllowMouseRotate(bool newAllowMouseRotate)
+{
+  _allowMouseRotate = newAllowMouseRotate;
+}
+
+bool Label::canSnapToGrid() const
+{
+  // Only snap when the rotation is a multiple of 90
+  return Item::snapToGrid() && fmod(rotation(), 90) == 0;
+}
+
+const QColor& Label::textColor() const
 {
   return _text_color;
 }
 
-void Label::setTextColor(const QColor &newText_color)
+void Label::setTextColor(const QColor& newText_color)
 {
   _text_color = newText_color;
-  Item::update();
+  update();
 }
 
 QString Label::text() const
@@ -161,7 +207,7 @@ QRectF Label::textRect() const
   return _textRect;
 }
 
-void Label::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void Label::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   Q_UNUSED(option)
   Q_UNUSED(widget)
@@ -212,46 +258,190 @@ void Label::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
   painter->setBrush(Qt::NoBrush);
   painter->setFont(_font);
   painter->drawText(_textRect, _text, textOption);
+
+  // Rotate handle
+  if (isSelected() && allowMouseRotate())
+  {
+    paintRotateHandle(*painter);
+  }
 }
 
-void Label::mouseDoubleClickEvent([[maybe_unused]] QGraphicsSceneMouseEvent *event)
+void Label::mouseDoubleClickEvent([[maybe_unused]] QGraphicsSceneMouseEvent* event)
 {
   emit doubleClicked();
 }
 
-QVariant Label::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
+void Label::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+  Q_ASSERT(scene());
+
+  event->accept();
+
+  QPointF newMousePos(event->scenePos());
+
+  QRectF rect = scene()->sceneRect();
+
+  // Don't accept any mouse move event outside the sheet
+  if (!rect.contains(newMousePos))
+  {
+    // Hand over to base class
+    Item::mouseMoveEvent(event);
+    return;
+  }
+
+  switch (_mode)
+  {
+    case None:
+    {
+      Item::mouseMoveEvent(event);
+
+      break;
+    }
+
+    case Rotate:
+    {
+      // Sanity check
+      if (!_allowMouseRotate)
+      {
+        qFatal("Node::mouseMoveEvent(): _mode is 'Rotate' although _allowMouseRotate is false");
+        break;
+      }
+
+      auto center = mapRectToScene(textRect()).center();
+
+      auto delta = center - newMousePos;
+      auto angle = fmod(qAtan2(delta.ry(), delta.rx()) * 180 / M_PI + 270, 360);
+
+      if (QApplication::keyboardModifiers() == Qt::ShiftModifier)
+      {
+        angle = qRound(angle / 15) * 15;
+      }
+
+      scene()->undoStack()->push(new CommandLabelRotate(this, angle));
+    }
+  }
+
+}
+
+void Label::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
+
+  // Let the base class handle selection and so on
+  Item::mousePressEvent(event);
+
+  // Presume no mode
+  _mode = None;
+
+  // Rotation
+  if (isSelected() && _allowMouseRotate)
+  {
+    if (rotationHandle().contains(event->pos().toPoint()))
+    {
+      _mode = Rotate;
+    }
+  }
+}
+
+void Label::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
+  Item::mouseReleaseEvent(event);
+  _mode = None;
+}
+
+QVariant Label::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value)
 {
   switch (change)
   {
-  case QGraphicsItem::ItemPositionChange:
-  {
-    QPointF newPos = value.toPointF();
-
-    Scene *currentScene = scene();
-
-    if (currentScene != nullptr)
+    case QGraphicsItem::ItemPositionChange:
     {
-      // the new position value is relative to parent item not the scene
-      // the rect must be relative to the parent coordinate
-      QRectF rect = mapRectToParent(mapRectFromScene(currentScene->sceneRect()));
+      QPointF newPos = value.toPointF();
 
-      QPointF bottomLeftPos = newPos + textRect().bottomLeft();
-      QPointF topRightPos = newPos + textRect().topRight();
+      Scene* currentScene = scene();
 
-      // Keep the label rect inside of the sheet
-      if (!rect.contains(bottomLeftPos) || !rect.contains(topRightPos))
+      if (currentScene != nullptr)
       {
-        newPos.setX(qMin(rect.right() - textRect().right(), qMax(newPos.x(), rect.left() - textRect().left())));
-        newPos.setY(qMin(rect.bottom() - textRect().bottom(), qMax(newPos.y(), rect.top() - textRect().top())));
+        // the new position value is relative to parent item not the scene
+        // the rect must be relative to the parent coordinate
+        QRectF rect = mapRectToParent(mapRectFromScene(currentScene->sceneRect()));
 
-        return newPos;
+        QPointF bottomLeftPos = newPos + textRect().bottomLeft();
+        QPointF topRightPos = newPos + textRect().topRight();
+
+        // Keep the label rect inside of the sheet
+        if (!rect.contains(bottomLeftPos) || !rect.contains(topRightPos))
+        {
+          newPos.setX(qMin(rect.right() - textRect().right(), qMax(newPos.x(), rect.left() - textRect().left())));
+          newPos.setY(qMin(rect.bottom() - textRect().bottom(), qMax(newPos.y(), rect.top() - textRect().top())));
+
+          return newPos;
+        }
       }
+
+      return newPos;
     }
 
-    return newPos;
+    default:
+      return Item::itemChange(change, value);
   }
+}
 
-  default:
-    return Item::itemChange(change, value);
+void Label::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
+{
+  Item::hoverMoveEvent(event);
+
+  // Set the cursor
+  {
+    setCursor(Qt::ArrowCursor);
+
+    if (isSelected() && _allowMouseRotate)
+    {
+      if (rotationHandle().contains(event->pos().toPoint()))
+      {
+        setCursor(Qt::SizeAllCursor);
+      }
+    }
   }
+}
+
+void Label::update()
+{
+  // The item class sets the origin to the center of the bounding box
+  // but in this case we want to rotate around the center of the body
+  setTransformOriginPoint(_textRect.center());
+  QGraphicsObject::update();
+}
+
+QRectF Label::rotationHandle() const
+{
+  const QRectF& r = textRect();
+  const int& resizeHandleSize = _settings.resizeHandleSize;
+  return QRectF(Utils::centerPoint(r.topRight(), r.topLeft()) + QPointF(1, -resizeHandleSize * 3) - QPointF(resizeHandleSize, resizeHandleSize), QSizeF(2 * resizeHandleSize, 2 * resizeHandleSize));
+}
+
+void Label::paintRotateHandle(QPainter& painter)
+{
+  auto rect = rotationHandle();
+
+  // Handle pen
+  QPen handlePen;
+  handlePen.setStyle(Qt::NoPen);
+  painter.setPen(handlePen);
+
+  // Handle Brush
+  QBrush handleBrush;
+  handleBrush.setStyle(Qt::SolidPattern);
+  painter.setBrush(handleBrush);
+
+  // Draw the outer handle
+  handleBrush.setColor("#3fa9f5");
+  painter.setBrush(handleBrush);
+  painter.drawEllipse(rect.adjusted(-handlePen.width(), -handlePen.width(), handlePen.width() / 2, handlePen.width() / 2));
+
+  // Draw the inner handle
+  int adj = _settings.resizeHandleSize / 2;
+  handleBrush.setColor(Qt::white);
+  painter.setBrush(handleBrush);
+  painter.drawEllipse(rect.adjusted(-handlePen.width() + adj, -handlePen.width() + adj, (handlePen.width() / 2) - adj, (handlePen.width() / 2) - adj));
 }
