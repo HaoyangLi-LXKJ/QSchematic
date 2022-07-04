@@ -88,7 +88,11 @@ void FlexLabel::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
       if (!scene())
         return;
 
-      const QString& newText = QInputDialog::getText(nullptr, "Change Label Text", "New label text", QLineEdit::Normal, this->text());
+      bool dialogOKPressed = true;
+      const QString& newText = QInputDialog::getText(nullptr, "Change Label Text", "New label text", QLineEdit::Normal, this->text(), &dialogOKPressed);
+
+      if (!dialogOKPressed)
+        return;
 
       scene()->undoStack()->push(new QSchematic::CommandLabelRename(this, newText));
     });
@@ -99,7 +103,12 @@ void FlexLabel::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
     {
       if (!scene())
         return;
-      const int& newFontSize = QInputDialog::getInt(nullptr, "Change Label Size", "New label size", font().pointSize(), 1, MAX_FONT_SIZE);
+
+      bool dialogOKPressed = true;
+      const int& newFontSize = QInputDialog::getInt(nullptr, "Change Label Size", "New label size", font().pointSize(), 1, MAX_FONT_SIZE, 1, &dialogOKPressed);
+
+      if (!dialogOKPressed)
+        return;
 
       changeFontSize(newFontSize);
     });
