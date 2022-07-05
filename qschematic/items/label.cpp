@@ -96,10 +96,10 @@ QRectF Label::boundingRect() const
 {
   QRectF rect = _textRect;
 
-  if (isHighlighted())
-  {
-    rect = rect.united(QRectF(_textRect.center(), mapFromParent(_connectionPoint)));
-  }
+  //  if (isHighlighted())
+  //  {
+  //    rect = rect.united(QRectF(_textRect.center(), mapFromParent(_connectionPoint)));
+  //  }
 
   // Rotate handle
   if (isSelected() && _allowMouseRotate)
