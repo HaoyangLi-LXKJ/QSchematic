@@ -18,7 +18,7 @@ class Settings
 {
 public:
   bool debug                  = false;
-  int gridSize                = 20;
+  int gridSize                = 10;
   int gridPointSize           = 3;
   bool showGrid               = true;
   int highlightRectPadding    = 10;
