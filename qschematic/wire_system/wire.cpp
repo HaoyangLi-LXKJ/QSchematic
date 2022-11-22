@@ -580,7 +580,7 @@ void wire::simplify()
 
 bool wire::connect_wire(wire* wire)
 {
-    if (m_connectedWires.contains(wire)) {
+    if (m_connectedWires.contains(wire) || wire->connected_wires().contains(this)) {
         return false;
     }
     m_connectedWires.append(wire);
