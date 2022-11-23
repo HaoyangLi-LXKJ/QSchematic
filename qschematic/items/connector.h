@@ -48,6 +48,9 @@ namespace QSchematic
     QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value) override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
 
+    void setXStickToRatio();
+    void setYStickToRatio();
+
     // Connectable
     QPointF position() const override;
 
@@ -64,6 +67,11 @@ namespace QSchematic
     bool _forceTextDirection;
     Direction _textDirection;
     std::shared_ptr<Graphics::FlexLabel> _label;
+
+    bool _rememberRatio = true;
+    // Position ratio to parent
+    qreal _xratio = 0;
+    qreal _yratio = 0;
   };
 
 }

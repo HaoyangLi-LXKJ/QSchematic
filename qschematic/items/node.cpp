@@ -183,6 +183,9 @@ void Node::setSize(const QSizeF& size)
   // Move connectors
   for (const auto& connector : connectors())
   {
+    connector->setXStickToRatio();
+    connector->setYStickToRatio();
+
     if (qFuzzyCompare(connector->posX(), oldSize.width()) ||
         connector->posX() > size.width())
     {
