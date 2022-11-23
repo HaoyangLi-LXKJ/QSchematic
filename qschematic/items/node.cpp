@@ -531,8 +531,8 @@ void Node::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   // Don't accept any mouse move event outside the sheet
   if (!rect.contains(newMousePos))
   {
-    // Hand over to base class
-    Item::mouseMoveEvent(event);
+    // Stop handling the mouse event if it is outside the rect
+    //    Item::mouseMoveEvent(event);
     return;
   }
 
@@ -698,6 +698,23 @@ void Node::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
       if (QApplication::keyboardModifiers() == Qt::ShiftModifier)
       {
         angle = qRound(angle / 15) * 15;
+      }
+
+      if (angle > 45 && angle <= 90)
+      {
+        angle = 90;
+      }
+      else if (angle > 90 && angle <= 180)
+      {
+        angle = 180;
+      }
+      else if (angle > 180 && angle <= 270)
+      {
+        angle = 270;
+      }
+      else
+      {
+        angle = 0;
       }
 
       scene()->undoStack()->push(new CommandNodeRotate(this, angle));
