@@ -38,7 +38,7 @@ namespace QSchematic {
         std::shared_ptr<Item> deepCopy() const override;
 
         Mode mode() const;
-        void setSize(const QSizeF& size);
+        void setSize(const QSizeF& size, bool stickToRatio = false);
         void setSize(qreal width, qreal height);
         void setWidth(qreal width);
         void setHeight(qreal height);

@@ -160,7 +160,7 @@ Node::Mode Node::mode() const
   return _mode;
 }
 
-void Node::setSize(const QSizeF& size)
+void Node::setSize(const QSizeF& size, bool stickToRatio)
 {
   // short circuit when no effective change at all times as a manner of policy
   if (size == _size)
@@ -183,8 +183,11 @@ void Node::setSize(const QSizeF& size)
   // Move connectors
   for (const auto& connector : connectors())
   {
-    connector->setXStickToRatio();
-    connector->setYStickToRatio();
+    if (stickToRatio)
+    {
+      connector->setXStickToRatio();
+      connector->setYStickToRatio();
+    }
 
     if (qFuzzyCompare(connector->posX(), oldSize.width()) ||
         connector->posX() > size.width())

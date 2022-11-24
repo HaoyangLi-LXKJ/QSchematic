@@ -6,58 +6,63 @@
 using namespace QSchematic;
 
 CommandNodeResize::CommandNodeResize(QPointer<Node> node, const QPointF& newPos, const QSizeF& newSize, QUndoCommand* parent) :
-    UndoCommand(parent),
-    _node(node),
-    _newPos(newPos),
-    _newSize(newSize)
+  UndoCommand(parent),
+  _node(node),
+  _newPos(newPos),
+  _newSize(newSize)
 {
-    _oldPos = node->pos();
-    _oldSize = node->size();
-    connectDependencyDestroySignal(_node.data());
-    setText(QStringLiteral("Node resize"));
+  _oldPos = node->pos();
+  _oldSize = node->size();
+  connectDependencyDestroySignal(_node.data());
+  setText(QStringLiteral("Node resize"));
 }
 
 int CommandNodeResize::id() const
 {
-    return NodeResizeCommandType;
+  return NodeResizeCommandType;
 }
 
 bool CommandNodeResize::mergeWith(const QUndoCommand* command)
 {
-    // Check id
-    if (id() != command->id()) {
-        return false;
-    }
+  // Check id
+  if (id() != command->id())
+  {
+    return false;
+  }
 
-    // Check item
-    const CommandNodeResize* myCommand = static_cast<const CommandNodeResize*>(command);
-    if (_node != myCommand->_node) {
-        return false;
-    }
+  // Check item
+  const CommandNodeResize* myCommand = static_cast<const CommandNodeResize*>(command);
 
-    // Merge
-    _newPos = myCommand->_newPos;
-    _newSize = myCommand->_newSize;
+  if (_node != myCommand->_node)
+  {
+    return false;
+  }
 
-    return true;
+  // Merge
+  _newPos = myCommand->_newPos;
+  _newSize = myCommand->_newSize;
+
+  return true;
 }
 
 void CommandNodeResize::undo()
 {
-    if (!_node) {
-        return;
-    }
+  if (!_node)
+  {
+    return;
+  }
 
-    _node->setSize(_oldSize);
-    _node->setPos(_oldPos);
+  _node->setSize(_oldSize, true);
+  _node->setPos(_oldPos);
 }
 
 void CommandNodeResize::redo()
 {
-    if (!_node) {
-        return;
-    }
+  if (!_node)
+  {
+    return;
+  }
 
-    _node->setSize(_newSize);
-    _node->setPos(_newPos);
+  _node->setSize(_newSize, true);
+  _node->setPos(_newPos);
 }

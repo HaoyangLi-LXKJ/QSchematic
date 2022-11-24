@@ -51,8 +51,8 @@ Connector::Connector(int type, const QPoint& gridPoint, const QString& text, QGr
   if (parent)
   {
     const Node* parentNode = qgraphicsitem_cast<const Node*>(parent);
-    _xratio = gridPoint.x() / parentNode->size().width();
-    _yratio = gridPoint.y() / parentNode->size().height();
+    _xratio = x() / parentNode->size().width();
+    _yratio = y() / parentNode->size().height();
   }
 
 }
@@ -255,15 +255,8 @@ QVariant Connector::itemChange(QGraphicsItem::GraphicsItemChange change, const Q
 
       if (parentNode)
       {
-
-        QRectF parentNodeSizeRect(0, 0, parentNode->size().width(), parentNode->size().height());
-
-        // Try to remember the ratios after position change
-        if (_rememberRatio)
-        {
-          _xratio = x() / parentNode->size().width();
-          _yratio = y() / parentNode->size().height();
-        }
+        _xratio = x() / parentNode->size().width();
+        _yratio = y() / parentNode->size().height();
       }
 
       break;
