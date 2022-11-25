@@ -83,7 +83,10 @@ namespace QSchematic {
         bool canSnapToGrid() const;
         void update() override;
 
-    protected:
+        static bool globalAllowRotate();
+        static void setGlobalAllowRotate(bool newGlobalAllowRotate);
+
+        protected:
         void copyAttributes(Node& dest) const;
         void addSpecialConnector(const std::shared_ptr<Connector>& connectors);
         QMap<RectanglePoint, QRectF> resizeHandles() const;
@@ -105,6 +108,8 @@ namespace QSchematic {
         bool _connectorsSnapToGrid;
         QList<std::shared_ptr<Connector>> _connectors;
         QList<std::shared_ptr<Connector>> _specialConnectors;  // Ignored in serialization and deep-copy
+
+        static bool _globalAllowRotate;
     };
 
 }

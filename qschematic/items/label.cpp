@@ -18,6 +18,8 @@ const qreal LABEL_TEXT_PADDING = 2;
 
 using namespace QSchematic;
 
+bool Label::_globalAllowMouseRotate = true;
+
 Label::Label(int type, QGraphicsItem* parent) : Item(type, parent),
   _hasConnectionPoint(true),
   _mode(None),
@@ -155,6 +157,16 @@ void Label::calculateTextRect()
   _textRect.adjust(-LABEL_TEXT_PADDING, -LABEL_TEXT_PADDING, LABEL_TEXT_PADDING, LABEL_TEXT_PADDING);
 }
 
+bool Label::globalAllowMouseRotate()
+{
+  return _globalAllowMouseRotate;
+}
+
+void Label::setGlobalAllowMouseRotate(bool newGlobalAllowMouseRotate)
+{
+  _globalAllowMouseRotate = newGlobalAllowMouseRotate;
+}
+
 Label::Mode Label::mode() const
 {
   return _mode;
@@ -167,6 +179,11 @@ void Label::setMode(Mode newMode)
 
 bool Label::allowMouseRotate() const
 {
+  if (!_globalAllowMouseRotate)
+  {
+    return false;
+  }
+
   return _allowMouseRotate;
 }
 

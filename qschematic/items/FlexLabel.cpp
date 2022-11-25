@@ -12,6 +12,8 @@
 
 using namespace Graphics;
 
+bool FlexLabel::_globalMenuEnable = true;
+
 FlexLabel::FlexLabel(int type, QGraphicsItem* parent) :
   QSchematic::Label(type, parent)
 {
@@ -75,8 +77,23 @@ void FlexLabel::copyAttributes(FlexLabel& dest) const
   dest.setFont(font());
 }
 
+bool FlexLabel::globalMenuEnable()
+{
+  return _globalMenuEnable;
+}
+
+void FlexLabel::setGlobalMenuEnable(bool newGlobalMenuEnable)
+{
+  _globalMenuEnable = newGlobalMenuEnable;
+}
+
 void FlexLabel::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
+  if (!_globalMenuEnable)
+  {
+    return;
+  }
+
   // Create the menu
   QMenu menu;
   {

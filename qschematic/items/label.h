@@ -59,7 +59,10 @@ namespace QSchematic
     QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value) override;
     void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
     void update() override;
-protected:
+    static bool globalAllowMouseRotate();
+    static void setGlobalAllowMouseRotate(bool newGlobalAllowMouseRotate);
+
+    protected:
     void copyAttributes(Label &dest) const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
@@ -85,6 +88,8 @@ protected:
     // Added by PT to rotate the label
     Mode _mode;
     bool _allowMouseRotate;
+
+    static bool _globalAllowMouseRotate;
   };
 
 }

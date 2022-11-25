@@ -24,9 +24,13 @@ public:
   void changeFontColor(QColor color);
   static const int MAX_FONT_SIZE = 400;
 
-protected:
+  static bool globalMenuEnable();
+  static void setGlobalMenuEnable(bool newGlobalMenuEnable);
+
+  protected:
   void copyAttributes(FlexLabel& dest) const;
 
 private:
+  static bool _globalMenuEnable;
 };
 }

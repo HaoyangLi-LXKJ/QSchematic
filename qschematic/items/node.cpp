@@ -21,6 +21,8 @@ using namespace QSchematic;
 const int DEFAULT_WIDTH = 160;
 const int DEFAULT_HEIGHT = 240;
 
+bool Node::_globalAllowRotate = true;
+
 Node::Node(int type, QGraphicsItem* parent) : Item(type, parent),
   _mode(None),
   _size(DEFAULT_WIDTH, DEFAULT_HEIGHT),
@@ -260,6 +262,11 @@ bool Node::allowMouseResize() const
 
 bool Node::allowMouseRotate() const
 {
+  if (!_globalAllowRotate)
+  {
+    return false;
+  }
+
   return _allowMouseRotate;
 }
 
@@ -1018,4 +1025,14 @@ void Node::propagateSettings()
   {
     connector->setSettings(_settings);
   }
+}
+
+bool Node::globalAllowRotate()
+{
+  return _globalAllowRotate;
+}
+
+void Node::setGlobalAllowRotate(bool newGlobalAllowRotate)
+{
+  _globalAllowRotate = newGlobalAllowRotate;
 }
