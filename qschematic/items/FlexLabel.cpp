@@ -13,6 +13,8 @@
 using namespace Graphics;
 
 bool FlexLabel::_globalMenuEnable = true;
+QString FlexLabel::_changeLabelTextText = "Change Label Text";
+QString FlexLabel::_changeLabelSizeText = "Change Label Size";
 
 FlexLabel::FlexLabel(int type, QGraphicsItem* parent) :
   QSchematic::Label(type, parent)
@@ -77,6 +79,26 @@ void FlexLabel::copyAttributes(FlexLabel& dest) const
   dest.setFont(font());
 }
 
+const QString& FlexLabel::changeLabelTextText()
+{
+  return _changeLabelTextText;
+}
+
+void FlexLabel::setChangeLabelTextText(const QString& newChangeLabelTextText)
+{
+  _changeLabelTextText = newChangeLabelTextText;
+}
+
+const QString& FlexLabel::changeLabelSizeText()
+{
+  return _changeLabelSizeText;
+}
+
+void FlexLabel::setChangeLabelSizeText(const QString& newChangeLabelSizeText)
+{
+  _changeLabelSizeText = newChangeLabelSizeText;
+}
+
 bool FlexLabel::globalMenuEnable()
 {
   return _globalMenuEnable;
@@ -99,7 +121,7 @@ void FlexLabel::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
   {
     // Text
     QAction* text = new QAction;
-    text->setText("Change Label Text");
+    text->setText(_changeLabelTextText);
     connect(text, &QAction::triggered, [this]
     {
       if (!scene())
@@ -115,7 +137,7 @@ void FlexLabel::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
     });
 
     QAction* text_size = new QAction;
-    text_size->setText("Change Label Size");
+    text_size->setText(_changeLabelSizeText);
     connect(text_size, &QAction::triggered, [this]
     {
       if (!scene())

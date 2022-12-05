@@ -11,6 +11,7 @@ class FlexLabel : public QSchematic::Label
   Q_OBJECT
   Q_DISABLE_COPY(FlexLabel)
 public:
+
   explicit FlexLabel(int type = ItemType::FlexLabelType, QGraphicsItem* parent = nullptr);
   virtual ~FlexLabel() override;
 
@@ -27,10 +28,17 @@ public:
   static bool globalMenuEnable();
   static void setGlobalMenuEnable(bool newGlobalMenuEnable);
 
+  static const QString &changeLabelTextText();
+  static void setChangeLabelTextText(const QString &newChangeLabelTextText);
+  static const QString &changeLabelSizeText();
+  static void setChangeLabelSizeText(const QString &newChangeLabelSizeText);
+
   protected:
   void copyAttributes(FlexLabel& dest) const;
 
 private:
   static bool _globalMenuEnable;
+  static QString _changeLabelTextText;
+  static QString _changeLabelSizeText;
 };
 }
