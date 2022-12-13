@@ -153,7 +153,7 @@ void Label::setConnectionPoint(const QPointF& connectionPoint)
 void Label::calculateTextRect()
 {
   QFontMetricsF fontMetrics(_font);
-  _textRect = fontMetrics.boundingRect(_text);
+  _textRect = fontMetrics.boundingRect(QRect(0, 0, 500, 100), NULL, _text);
   _textRect.adjust(-LABEL_TEXT_PADDING, -LABEL_TEXT_PADDING, LABEL_TEXT_PADDING, LABEL_TEXT_PADDING);
 }
 

@@ -128,7 +128,7 @@ void FlexLabel::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
         return;
 
       bool dialogOKPressed = true;
-      const QString& newText = QInputDialog::getText(nullptr, "Change Label Text", "New label text", QLineEdit::Normal, this->text(), &dialogOKPressed);
+      const QString& newText = QInputDialog::getMultiLineText(nullptr, "Change Label Text", "New label text", this->text(), &dialogOKPressed);
 
       if (!dialogOKPressed)
         return;
