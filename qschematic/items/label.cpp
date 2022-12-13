@@ -329,10 +329,10 @@ void Label::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
       auto delta = center - newMousePos;
       auto angle = fmod(qAtan2(delta.ry(), delta.rx()) * 180 / M_PI + 270, 360);
 
-      if (QApplication::keyboardModifiers() == Qt::ShiftModifier)
-      {
-        angle = qRound(angle / 15) * 15;
-      }
+      //      if (QApplication::keyboardModifiers() == Qt::ShiftModifier)
+      //      {
+      angle = qRound(angle / 90) * 90;
+      //      }
 
       scene()->undoStack()->push(new CommandLabelRotate(this, angle));
     }
