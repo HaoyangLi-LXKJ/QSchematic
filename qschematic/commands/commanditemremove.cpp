@@ -1,8 +1,8 @@
+#include "commands.h"
+#include "commanditemremove.h"
 #include "../items/item.h"
 #include "../items/wire.h"
 #include "../scene.h"
-#include "commands.h"
-#include "commanditemremove.h"
 
 using namespace QSchematic;
 
@@ -14,7 +14,7 @@ CommandItemRemove::CommandItemRemove(const QPointer<Scene>& scene, const std::sh
     Q_ASSERT(scene);
     connectDependencyDestroySignal(_scene.data());
     // Everything needs a text, right?
-    setText(QStringLiteral("Remove item"));
+    setText(tr("Remove item"));
 }
 
 int CommandItemRemove::id() const

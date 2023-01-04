@@ -1,14 +1,20 @@
 # Pull in external dependencies
 include(../qschematic/external.cmake)
 
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_INCLUDE_CURRENT_DIR_IN_INTERFACE ON)
-
-# Qt5
-find_package(Qt5
+# Qt
+find_package(
+    Qt6
     COMPONENTS
         PrintSupport
 )
+if (NOT Qt6_FOUND)
+    find_package(
+        Qt5
+        REQUIRED
+        COMPONENTS
+            PrintSupport
+    )
+endif()
 
 # Source files
 set(SOURCES_PRIVATE
@@ -18,6 +24,7 @@ set(SOURCES_PRIVATE
 
 # Resources files
 set(RESOURCES
+    resources/examples/examples.qrc
     resources/icons/icons.qrc
 )
 
@@ -45,14 +52,13 @@ target_link_libraries(
     ${TARGET}
     PRIVATE
         qschematic-static
-        Qt5::PrintSupport
+        Qt::PrintSupport
 )
 set_target_properties(
     ${TARGET}
     PROPERTIES
         AUTOMOC ON
         AUTORCC ON
-        AUTOUIC ON
 )
 
 # Set window settings

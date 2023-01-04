@@ -1,10 +1,11 @@
-#include <QVector>
-#include <QVector2D>
 #include "manager.h"
 #include "net.h"
 #include "point.h"
 #include "wire.h"
 #include "connectable.h"
+
+#include <QVector>
+#include <QVector2D>
 
 using namespace wire_system;
 
@@ -371,6 +372,7 @@ void manager::point_removed(const wire* wire, int index)
 
 void manager::detach_wire(const connectable* connector)
 {
+    // ToDo: This doesn't seem robust at all
     const auto& wire = m_connections.value(connector).first;
     m_connections.remove(connector);
 }
@@ -436,7 +438,7 @@ void manager::connector_moved(const connectable* connector)
 /**
  * Returns whether the wire's point is attached to a connector
  */
-bool manager::point_is_attached(wire_system::wire* wire, int index)
+bool manager::point_is_attached(wire_system::wire* wire, int index) const
 {
     for (const auto& wire_point : m_connections.values()) {
         if (wire_point.first != wire) {

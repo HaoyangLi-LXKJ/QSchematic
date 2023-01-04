@@ -1,13 +1,12 @@
 #pragma once
 
-#include <QFont>
-
 #include "item.h"
-#include "qschematic_export.h"
+
+#include <QFont>
 
 namespace QSchematic {
 
-    class QSCHEMATIC_EXPORT Label :
+    class Label :
         public Item
     {
         Q_OBJECT

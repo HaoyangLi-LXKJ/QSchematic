@@ -1,15 +1,14 @@
 #pragma once
 
 #include "item.h"
-#include "wire_system/connectable.h"
-#include "qschematic_export.h"
+#include "../wire_system/connectable.h"
 
 namespace QSchematic {
 
     class Label;
     class Wire;
 
-    class QSCHEMATIC_EXPORT Connector :
+    class Connector :
         public Item,
         public wire_system::connectable
     {
@@ -45,7 +44,6 @@ namespace QSchematic {
         std::shared_ptr<Label> label() const;
         void alignLabel();
         QRectF boundingRect() const override;
-        QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value) override;
         void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) override;
 
         // Connectable
@@ -53,10 +51,12 @@ namespace QSchematic {
 
     protected:
         void copyAttributes(Connector& dest) const;
+        QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value) override;
 
     private:
         void calculateSymbolRect();
         void calculateTextDirection();
+        void disconnect_all_wires();
         void notify_wire_manager();
 
         SnapPolicy _snapPolicy;

@@ -1,12 +1,12 @@
-#include <QPainter>
-#include <QVector2D>
-#include <QGraphicsSceneHoverEvent>
-#include <QWidget>
 #include "item.h"
 #include "../scene.h"
 #include "../commands/commanditemmove.h"
 
 #include <QDebug>
+#include <QPainter>
+#include <QVector2D>
+#include <QGraphicsSceneHoverEvent>
+#include <QWidget>
 
 using namespace QSchematic;
 
@@ -313,6 +313,9 @@ QPixmap Item::toPixmap(QPointF& hotSpot, qreal scale)
     painter.translate(hotSpot);
     paint(&painter, nullptr, nullptr);
     for (QGraphicsItem* child : childItems()) {
+        if (!child)
+            continue;
+        
         painter.save();
         painter.translate(child->pos());
         child->paint(&painter, nullptr, nullptr);

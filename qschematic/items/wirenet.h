@@ -1,13 +1,13 @@
 #pragma once
 
-#include <memory>
+#include "../wire_system/line.h"
+#include "../wire_system/net.h"
+
+#include <gpds/serialize.hpp>
 #include <QObject>
 #include <QList>
-#include <gpds/serialize.hpp>
 
-#include "wire_system/line.h"
-#include "wire_system/net.h"
-#include "qschematic_export.h"
+#include <memory>
 
 namespace wire_system {
     class point;
@@ -22,7 +22,7 @@ namespace QSchematic {
     class Label;
     class Scene;
 
-    class QSCHEMATIC_EXPORT WireNet :
+    class WireNet :
         public QObject,
         public gpds::serialize,
         public wire_system::net

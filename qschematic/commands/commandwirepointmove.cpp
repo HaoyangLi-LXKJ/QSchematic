@@ -1,8 +1,7 @@
-#include <memory>
-#include "../items/item.h"
-#include "../scene.h"
 #include "commands.h"
 #include "commandwirepointmove.h"
+#include "../scene.h"
+#include "../items/item.h"
 
 using namespace QSchematic;
 
@@ -20,7 +19,7 @@ CommandWirepointMove::CommandWirepointMove(Scene* scene, const std::shared_ptr<W
     _newPos = _wire->pointsAbsolute();
     _newPos[index] = pos;
     _oldNet = _wire->net();
-    setText(QStringLiteral("Move wire point"));
+    setText(tr("Move wire point"));
 }
 
 int CommandWirepointMove::id() const

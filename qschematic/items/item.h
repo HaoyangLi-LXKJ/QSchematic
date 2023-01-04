@@ -1,22 +1,21 @@
 #pragma once
 
-#include <memory>
-#include <QGraphicsObject>
-#include <gpds/serialize.hpp>
+#include "itemfunctions.h"
 #include "../types.h"
 #include "../settings.h"
-#include "itemfunctions.h"
-#include "qschematic_export.h"
 
+#include <gpds/serialize.hpp>
 #include <QDebug>
+#include <QGraphicsObject>
 #include <QWidget>
+
+#include <memory>
 
 namespace QSchematic
 {
     class Scene;
-    class Item;
 
-    class QSCHEMATIC_EXPORT Item :
+    class Item :
         public QGraphicsObject,
         public gpds::serialize,
         public std::enable_shared_from_this<Item>
@@ -67,7 +66,7 @@ namespace QSchematic
         }
 
         template <typename RetT = Item>
-        auto weakPtr() const -> std::weak_ptr<RetT>
+        auto weakPtr() const -> std::weak_ptr<const RetT>
         {
             if constexpr (std::is_same_v<RetT, Item>)
                 return weak_from_this();

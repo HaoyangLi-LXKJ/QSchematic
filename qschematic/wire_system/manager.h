@@ -1,13 +1,13 @@
 #pragma once
 
+#include "../settings.h"
+
 #include <QObject>
 #include <QList>
 #include <QMap>
+
 #include <memory>
 #include <optional>
-
-#include "../settings.h"
-#include "qschematic_export.h"
 
 namespace QSchematic
 {
@@ -23,7 +23,7 @@ class net;
 class wire;
 class connectable;
 
-class QSCHEMATIC_EXPORT manager :
+class manager :
     public QObject
 {
     Q_OBJECT
@@ -57,7 +57,7 @@ public:
     void detach_wire(const connectable* connector);
     [[nodiscard]] std::shared_ptr<wire> wire_with_extremity_at(const QPointF& point);
     void point_inserted(const wire* wire, int index);
-    [[nodiscard]] bool point_is_attached(wire_system::wire* wire, int index);
+    [[nodiscard]] bool point_is_attached(wire_system::wire* wire, int index) const;
     void set_settings(const Settings& settings);
     [[nodiscard]] Settings settings() const;
     void point_removed(const wire* wire, int index);

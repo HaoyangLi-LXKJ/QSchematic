@@ -1,10 +1,12 @@
 #pragma once
 
-#include <memory>
+#include "commandbase.h"
+#include "../items/wire.h"
+
 #include <QVector>
 #include <QVector2D>
-#include "../items/wire.h"
-#include "commandbase.h"
+
+#include <memory>
 
 class QVector2D;
 
@@ -12,7 +14,7 @@ namespace QSchematic
 {
     class Item;
 
-    class QSCHEMATIC_EXPORT CommandWirepointMove :
+    class CommandWirepointMove :
         public UndoCommand
     {
     public:

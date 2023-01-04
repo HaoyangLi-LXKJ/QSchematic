@@ -1,11 +1,12 @@
-#include <utils.h>
-#include <QVector2D>
 #include "connector.h"
-#include "../scene.h"
 #include "wirenet.h"
 #include "wire.h"
 #include "label.h"
 #include "itemfactory.h"
+#include "../scene.h"
+#include "../utils.h"
+
+#include <QVector2D>
 
 using namespace QSchematic;
 
@@ -177,7 +178,7 @@ QList<std::shared_ptr<WireNet>> WireNet::nets() const
             continue;
         }
 
-        if (QString::compare(net->name(), name(), Qt::CaseInsensitive) == 0) {
+        if (QString::compare(net->name(), name(), Qt::CaseSensitive) == 0) {
             if (auto otherNet = std::dynamic_pointer_cast<WireNet>(net)) {
                 list.append(otherNet);
             }

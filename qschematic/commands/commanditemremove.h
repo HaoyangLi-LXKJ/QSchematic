@@ -1,8 +1,10 @@
 #pragma once
 
-#include <memory>
 #include "commandbase.h"
+
 #include <QPointer>
+
+#include <memory>
 
 class QGraphicsItem;
 
@@ -11,7 +13,7 @@ namespace QSchematic
     class Scene;
     class Item;
 
-    class QSCHEMATIC_EXPORT CommandItemRemove :
+    class CommandItemRemove :
         public UndoCommand
     {
     public:

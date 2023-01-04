@@ -1,16 +1,8 @@
-# Project settings
-project(qschematic
-    VERSION 1.2.0
-    LANGUAGES CXX
-    HOMEPAGE_URL https://github.com/simulton/qschematic
-)
-
 # External dependencies
 include(external.cmake)
 
 # CMake settings
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_INCLUDE_CURRENT_DIR_IN_INTERFACE ON)
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 # List of source files
 set(SOURCES_PRIVATE
@@ -20,8 +12,8 @@ set(SOURCES_PRIVATE
     commands/commanditemremove.cpp
     commands/commanditemvisibility.cpp
     commands/commandlabelrename.cpp
-    commands/commandnoderesize.cpp
-    commands/commandnoderotate.cpp
+    commands/commandrectitemresize.cpp
+    commands/commandrectitemrotate.cpp
     commands/commandwirenetrename.cpp
     commands/commandwirepointmove.cpp
     items/connector.cpp
@@ -30,7 +22,9 @@ set(SOURCES_PRIVATE
     items/itemmimedata.cpp
     items/label.cpp
     items/node.cpp
+    items/rectitem.cpp
     items/splinewire.cpp
+    items/widget.cpp
     items/wire.cpp
     items/wirenet.cpp
     items/wireroundedcorners.cpp
@@ -53,8 +47,8 @@ set(HEADERS_PUBLIC
     commands/commanditemremove.h
     commands/commanditemvisibility.h
     commands/commandlabelrename.h
-    commands/commandnoderesize.h
-    commands/commandnoderotate.h
+    commands/commandrectitemresize.h
+    commands/commandrectitemrotate.h
     commands/commands.h
     commands/commandwirenetrename.h
     commands/commandwirepointmove.h
@@ -65,7 +59,9 @@ set(HEADERS_PUBLIC
     items/itemmimedata.h
     items/label.h
     items/node.h
+    items/rectitem.h
     items/splinewire.h
+    items/widget.h
     items/wire.h
     items/wirenet.h
     items/wireroundedcorners.h
@@ -111,7 +107,6 @@ function(setup_target_common target)
     target_include_directories(
         ${target}
         PUBLIC
-            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>      # For qschematic_export.h
             $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/..>
             $<INSTALL_INTERFACE:..>
     )
@@ -119,9 +114,9 @@ function(setup_target_common target)
     target_link_libraries(
         ${target}
         PUBLIC
-            Qt5::Core
-            Qt5::Gui
-            Qt5::Widgets
+            Qt::Core
+            Qt::Gui
+            Qt::Widgets
             ${QSCHEMATIC_DEPENDENCY_GPDS_TARGET}
     )
 
@@ -130,7 +125,6 @@ function(setup_target_common target)
         PROPERTIES
             AUTOMOC ON
             AUTORCC ON
-            AUTOUIC ON
     )
 
     set_target_properties(
@@ -140,18 +134,6 @@ function(setup_target_common target)
             ARCHIVE_OUTPUT_NAME "qschematic"
             VERSION ${PROJECT_VERSION}
             POSITION_INDEPENDENT_CODE 1
-    )
-
-    include(GenerateExportHeader)
-    generate_export_header(
-        ${target}
-        BASE_NAME qschematic
-        DEPRECATED_MACRO_NAME "QSCHEMATIC_DEPRECATED"
-        NO_DEPRECATED_MACRO_NAME "QSCHEMATIC_NO_DEPRECATED"
-        EXPORT_MACRO_NAME "QSCHEMATIC_EXPORT"
-        NO_EXPORT_MACRO_NAME "QSCHEMATIC_NO_EXPORT"
-        STATIC_DEFINE "QSCHEMATIC_STATIC_DEFINE"
-        DEFINE_NO_DEPRECATED
     )
 endfunction()
 
@@ -193,12 +175,6 @@ foreach( file ${HEADERS_PUBLIC} )
     install( FILES ${file} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/qschematic/${dir} )
 endforeach()
 
-# Install export header
-install(
-    FILES ${PROJECT_BINARY_DIR}/qschematic_export.h
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/qschematic
-)
-
 # Targets
 install(
     TARGETS
@@ -220,21 +196,16 @@ install(
 
 # Package version
 write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/qschematic/qschematic-config-version.cmake"
+    qschematic-config-version.cmake
     VERSION ${QSchematic_VERSION}
     COMPATIBILITY AnyNewerVersion
 )
+configure_file(qschematic-config.cmake.in qschematic-config.cmake @ONLY)
 install(
     FILES
-        qschematic-config.cmake
-        "${CMAKE_CURRENT_BINARY_DIR}/qschematic/qschematic-config-version.cmake"
+        ${CMAKE_CURRENT_BINARY_DIR}/qschematic-config.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/qschematic-config-version.cmake
     DESTINATION ${ConfigPackageLocation}
-)
-
-# Package configuration
-configure_file(qschematic-config.cmake
-    "${CMAKE_CURRENT_BINARY_DIR}/qschematic/qschematic-config.cmake"
-    COPYONLY
 )
 
 # Package export targets

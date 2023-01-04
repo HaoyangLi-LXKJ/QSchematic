@@ -17,6 +17,7 @@
 #include "items/itemmimedata.h"
 #include "items/node.h"
 #include "items/label.h"
+#include "items/widget.h"
 #include "utils/itemscontainerutils.h"
 
 using namespace QSchematic;
@@ -39,7 +40,7 @@ Scene::Scene(QObject* parent) :
     connect(m_wire_manager.get(), &wire_system::manager::wire_point_moved, this, &Scene::wirePointMoved);
 
     // Undo stack
-    _undoStack = new QUndoStack;
+    _undoStack = new QUndoStack(this);
     connect(_undoStack, &QUndoStack::cleanChanged, [this](bool isClean) {
         emit isDirtyChanged(!isClean);
     });
@@ -53,7 +54,7 @@ Scene::Scene(QObject* parent) :
             return;
 
         // Get item popup
-        _popup.reset( addWidget(_highlightedItem->popup().release()) );
+        _popup.reset( QGraphicsScene::addWidget(_highlightedItem->popup().release()) );
         _popup->setZValue(100);
         _popup->setPos(_lastMousePos + QPointF{ 5, 5 });
     });
@@ -534,11 +535,7 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
             // Start a new wire if there isn't already one. Else continue the current one.
             if (!_newWire) {
-                if (_wireFactory) {
-                    _newWire = _wireFactory();
-                } else {
-                    _newWire = std::make_shared<Wire>();
-                }
+                _newWire = make_wire();
                 _undoStack->push(new CommandItemAdd(this, _newWire));
                 _newWire->setPos(_settings.snapToGrid(event->scenePos()));
             }
@@ -551,6 +548,10 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent* event)
             bool wireAttached = false;
             for (const auto& node: nodes()) {
                 for (const auto& connector: node->connectors()) {
+                    // Ignore hidden connectors
+                    if (!connector->isVisible())
+                        continue;
+
                     if (QVector2D(connector->scenePos() - snappedPos).length() < 1) {
                         m_wire_manager->attach_wire_to_connector(_newWire.get(), _newWire->pointsAbsolute().indexOf(snappedPos),
                                                                  connector.get());
@@ -685,6 +686,10 @@ void Scene::updateNodeConnections(const Node* node) const
 {
     // Check if a connector lays on a wirepoint
     for (auto& connector : node->connectors()) {
+        // Skip hidden connectors
+        if (!connector->isVisible())
+            continue;
+        
         // If the connector already has a wire attached, skip
         if (m_wire_manager->attached_wire(connector.get()) != nullptr) {
             continue;
@@ -809,7 +814,7 @@ void Scene::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
         // Highlight the item under the cursor
         Item* item = dynamic_cast<Item*>(itemAt(newMousePos, QTransform()));
-        if (item) {
+        if (item && item->highlightEnabled()) {
             // Skip if the item is already highlighted
             if (item == _highlightedItem) {
                 break;
@@ -1124,6 +1129,14 @@ void Scene::finishCurrentWire()
     _newWire.reset();
 }
 
+std::shared_ptr<Wire>
+Scene::make_wire() const
+{
+    if (_wireFactory)
+        return _wireFactory();
+    else
+        return std::make_shared<Wire>();
+}
 
 QList<QPointF> Scene::connectionPoints() const
 {
@@ -1264,8 +1277,6 @@ bool Scene::addWire(const std::shared_ptr<Wire>& wire)
         return false;
     }
 
-    wire->set_manager(m_wire_manager.get());
-
     // Add wire to scene
     // Wires created by mouse interactions are already added to the scene in the Scene::mouseXxxEvent() calls. Prevent
     // adding an already added item to the scene
@@ -1274,6 +1285,7 @@ bool Scene::addWire(const std::shared_ptr<Wire>& wire)
             return false;
         }
     }
+
     return true;
 }
 

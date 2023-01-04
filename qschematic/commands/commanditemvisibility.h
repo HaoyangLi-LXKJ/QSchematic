@@ -1,6 +1,7 @@
 #pragma once
 
 #include "commandbase.h"
+
 #include <memory>
 
 namespace QSchematic
@@ -8,7 +9,7 @@ namespace QSchematic
 
     class Item;
 
-    class QSCHEMATIC_EXPORT CommandItemVisibility :
+    class CommandItemVisibility :
         public UndoCommand
     {
     public:

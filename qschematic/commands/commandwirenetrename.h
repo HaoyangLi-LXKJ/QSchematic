@@ -1,15 +1,16 @@
 #pragma once
 
 #include "commandbase.h"
-#include <memory>
 #include "../items/wirenet.h"
+
+#include <memory>
 
 namespace QSchematic
 {
 
     class Label;
 
-    class QSCHEMATIC_EXPORT CommandWirenetRename :
+    class CommandWirenetRename :
         public UndoCommand
     {
     public:

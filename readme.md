@@ -1,3 +1,6 @@
+# Packages
+[![Packaging status](https://repology.org/badge/vertical-allrepos/qschematic.svg)](https://repology.org/project/qschematic/versions)
+
 # Introduction
 QSchematic is a library to draw diagrams & schematics with Qt. It uses Qt's [graphics view framework](http://doc.qt.io/qt-5/graphicsview.html).
 
@@ -19,10 +22,11 @@ Feature overview:
       - Square
       - Spline / Bezier
     - Connectors
+    - Widgets (embed any `QWidget` into the scene)
 
 Technical stuff:
   - Written in C++17
-  - Qt >= 5.13
+  - Works with Qt5 and Qt6
   - Everything is contained within the `QSchematic` namespace
   - MIT licensed
 
@@ -54,19 +58,17 @@ The following targets are provided:
 | `qschematic-demo` | Builds a simple demo application. | 
 
 Dependencies:
-  - Qt >= 5.13
+  - Qt5 (>= 5.15) or Qt6
   - [GPDS](https://gpds.simulton.com) for (de)serialization.
 
-If the cmake option `QSCHEMATIC_DEPENDENCY_GPDS_DOWNLOAD` is enabled, cmake will automatically pull the `GPDS` dependency.
-Therefore, assuming a system with a working Qt5 installation, all you have to do is:
+If the cmake option `QSCHEMATIC_DEPENDENCY_GPDS_DOWNLOAD` is enabled (default), cmake will automatically pull the `GPDS` dependency.
+Therefore, assuming a system with a working Qt5 or Qt6 installation, all you have to do is:
 
 ```shell
 git clone https://github.com/simulton/qschematic
 cd qschematic
-mkdir .build
-cd .build
-cmake ..
-make -j4
+cmake -B build
+cmake --build build
 ```
 
 ## Integration
@@ -84,7 +86,7 @@ include(FetchContent)
 FetchContent_Declare(
     qschematic
     GIT_REPOSITORY https://github.com/simulton/qschematic
-    GIT_TAG        1.0.1
+    GIT_TAG        master
 )
 FetchContent_MakeAvailable(qschematic)
 
@@ -95,12 +97,13 @@ target_link_libraries(
         qschematic-static
 )
 ```
+Note that any serious consumer might want to specify an actual git tag or a commit hash via `GIT_TAG` rather than a branch name.
 To change options & variables, the call to `FetchContent_MakeAvailable()` shown above can be replaced with:
 ```cmake
 FetchContent_Declare(
     qschematic
     GIT_REPOSITORY https://github.com/simulton/qschematic
-    GIT_TAG        1.0.1
+    GIT_TAG        master
 )
 FetchContent_GetProperties(qschematic)
 if(NOT qschematic_POPULATED)
@@ -112,8 +115,6 @@ if(NOT qschematic_POPULATED)
     
     add_subdirectory(${qschematic_SOURCE_DIR} ${qschematic_BINARY_DIR})
 endif()
-
-
 ```
 
 #### find_package()

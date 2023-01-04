@@ -1,9 +1,9 @@
 #pragma once
 
+#include "item.h"
+
 #include <functional>
 #include <memory>
-#include "item.h"
-#include "qschematic_export.h"
 
 class QString;
 
@@ -12,7 +12,7 @@ namespace QSchematic
 
     class Item;
 
-    class QSCHEMATIC_EXPORT ItemFactory
+    class ItemFactory
     {
     public:
         static ItemFactory& instance();

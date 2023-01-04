@@ -1,6 +1,7 @@
 #pragma once
 
 #include "commandbase.h"
+
 #include <QPointer>
 
 namespace QSchematic
@@ -8,7 +9,7 @@ namespace QSchematic
 
     class Label;
 
-    class QSCHEMATIC_EXPORT CommandLabelRename :
+    class CommandLabelRename :
         public UndoCommand
     {
     public:

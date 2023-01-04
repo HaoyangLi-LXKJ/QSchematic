@@ -1,6 +1,6 @@
-#include "../items/item.h"
-#include "commands.h"
 #include "commanditemvisibility.h"
+#include "commands.h"
+#include "../items/item.h"
 
 using namespace QSchematic;
 
@@ -10,7 +10,7 @@ CommandItemVisibility::CommandItemVisibility(const std::shared_ptr<Item>& item, 
     _newVisibility(newVisibility)
 {
     _oldVisibility = _item->isVisible();
-    setText(QStringLiteral("Change visibility"));
+    setText(tr("Change visibility"));
 }
 
 int CommandItemVisibility::id() const

@@ -1,14 +1,15 @@
+#include "connector.h"
+#include "label.h"
+#include "node.h"
+#include "wire.h"
+#include "../scene.h"
+#include "../utils.h"
+
 #include <QtMath>
 #include <QPainter>
 #include <QTransform>
 #include <QVector2D>
 #include <QGraphicsSceneHoverEvent>
-#include "connector.h"
-#include "node.h"
-#include "label.h"
-#include "../utils.h"
-#include "wire.h"
-#include "scene.h"
 
 const qreal SIZE               = 1;
 const QColor COLOR_BODY_FILL   = QColor(Qt::green);
@@ -51,6 +52,9 @@ Connector::~Connector()
 {
     // So it's definitely removed via the shared_ptr (which we have by way of the item-allocation contracts being shptr all through
     dissociate_item(_label);
+
+    // Disconnect all wires
+    disconnect_all_wires();
 }
 
 gpds::container Connector::to_container() const
@@ -207,16 +211,23 @@ QVariant Connector::itemChange(QGraphicsItem::GraphicsItemChange change, const Q
     }
 
     case QGraphicsItem::ItemPositionHasChanged:
+    case QGraphicsItem::ItemParentHasChanged:
     {
         calculateTextDirection();
         alignLabel();
         break;
     }
 
-    case QGraphicsItem::ItemParentHasChanged:
+    case QGraphicsItem::ItemVisibleHasChanged:
     {
-        calculateTextDirection();
-        alignLabel();
+        if (!isVisible())
+            disconnect_all_wires();
+        break;
+    }
+
+    case QGraphicsItem::ItemSceneChange:
+    {
+        disconnect_all_wires();
         break;
     }
 
@@ -361,13 +372,29 @@ QPointF Connector::position() const
     return scenePos();
 }
 
+void Connector::disconnect_all_wires()
+{
+    auto s = scene();
+    if (!s)
+        return;
+
+    auto wireManager = s->wire_manager();
+    if (!wireManager)
+        return;
+
+    wireManager->detach_wire(this);
+}
+
 void Connector::notify_wire_manager()
 {
-    // Ignore if it's not in a scene
-    if (!scene()) {
+    auto s = scene();
+    if (!s)
         return;
-    }
+
+    auto wireManager = s->wire_manager();
+    if (!wireManager)
+        return;
 
     // Notify the wire system when the connector moves
-    scene()->wire_manager()->connector_moved(this);
+    wireManager->connector_moved(this);
 }

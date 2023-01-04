@@ -1,8 +1,8 @@
 #pragma once
 
-#include "qschematic/items/node.h"
-
 #include "itemtypes.h"
+
+#include <qschematic/items/node.h>
 
 namespace QSchematic
 {
@@ -25,6 +25,7 @@ public:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) override;
     void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
+    void alignLabel();
     std::shared_ptr<QSchematic::Label> label() const;
     void setText(const QString& text);
     QString text() const;

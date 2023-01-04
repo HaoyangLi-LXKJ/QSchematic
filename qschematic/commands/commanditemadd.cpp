@@ -1,8 +1,8 @@
+#include "commands.h"
+#include "commanditemadd.h"
 #include "../items/item.h"
 #include "../items/wire.h"
 #include "../scene.h"
-#include "commands.h"
-#include "commanditemadd.h"
 
 using namespace QSchematic;
 
@@ -12,7 +12,7 @@ CommandItemAdd::CommandItemAdd(const QPointer<Scene>& scene, const std::shared_p
     _item(item)
 {
     connectDependencyDestroySignal(_scene.data());
-    setText(QStringLiteral("Add item"));
+    setText(tr("Add item"));
 }
 
 int CommandItemAdd::id() const

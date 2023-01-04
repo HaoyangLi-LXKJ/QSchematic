@@ -1,7 +1,7 @@
-#include "../items/label.h"
-#include "../items/wire.h"
 #include "commands.h"
 #include "commandwirenetrename.h"
+#include "../items/label.h"
+#include "../items/wire.h"
 
 using namespace QSchematic;
 
@@ -11,7 +11,7 @@ CommandWirenetRename::CommandWirenetRename(const std::shared_ptr<WireNet>& net, 
 {
     _net = net;
     _oldText = net->name();
-    setText(QStringLiteral("Rename wirenet"));
+    setText(tr("Rename wirenet"));
 }
 
 int CommandWirenetRename::id() const

@@ -1,11 +1,12 @@
 #include <QKeyEvent>
 #include <QWheelEvent>
 #include <QScrollBar>
+#include <QtMath>
 
-#include "commands/commanditemremove.h"
 #include "view.h"
 #include "scene.h"
 #include "settings.h"
+#include "commands/commanditemremove.h"
 
 const qreal ZOOM_FACTOR_MIN   = 0.25;
 const qreal ZOOM_FACTOR_MAX   = 10.00;
@@ -50,7 +51,7 @@ void View::keyPressEvent(QKeyEvent* event)
             return;
 
         case Qt::Key_0:
-            _scaleFactor = 1.0;
+            setZoomValue(1.0);
             updateScale();
             return;
 
@@ -92,9 +93,11 @@ void View::keyPressEvent(QKeyEvent* event)
         return;
 
     case Qt::Key_Backspace:
-        if (_scene && _scene->mode() == Scene::WireMode) {
+        if (_scene && _scene->mode() == Scene::WireMode)
             _scene->removeLastWirePoint();
-        }
+        else
+            QGraphicsView::keyPressEvent(event);
+
         return;
 
     default:
@@ -107,12 +110,20 @@ void View::keyPressEvent(QKeyEvent* event)
 
 void View::wheelEvent(QWheelEvent* event)
 {
+    // CTRL + wheel to zoom
     if (event->modifiers() & Qt::ControlModifier) {
-        if (event->angleDelta().y() > 0 && _scaleFactor < ZOOM_FACTOR_MAX) {
+
+        // Zoom in (clip)
+        if (event->angleDelta().y() > 0) {
             _scaleFactor += ZOOM_FACTOR_STEPS;
-        } else if (event->angleDelta().y() < 0 && _scaleFactor > ZOOM_FACTOR_MIN) {
+        }
+
+        // Zoom out (clip)
+        else if (event->angleDelta().y() < 0) {
             _scaleFactor -= ZOOM_FACTOR_STEPS;
         }
+
+        _scaleFactor = qBound(0.0, _scaleFactor, 1.0);
 
         updateScale();
     }
@@ -194,17 +205,23 @@ void View::setSettings(const Settings& settings)
 
 void View::setZoomValue(qreal factor)
 {
-    _scaleFactor = factor;
+    _scaleFactor = qLn(ZOOM_FACTOR_MIN/factor) / qLn(ZOOM_FACTOR_MIN / ZOOM_FACTOR_MAX);
 
     updateScale();
 }
 
 void View::updateScale()
 {
-    // Apply the new scale
-    setTransform(QTransform::fromScale(_scaleFactor, _scaleFactor));
+    // Exponential interpolation
+    float logMinZoom = qLn(ZOOM_FACTOR_MIN);
+    float logMaxZoom = qLn(ZOOM_FACTOR_MAX);
+    float logZoom = logMinZoom + (logMaxZoom - logMinZoom) * _scaleFactor;
+    float zoom = qExp(logZoom);
 
-    emit zoomChanged(_scaleFactor);
+    // Apply the new scale
+    setTransform(QTransform::fromScale(zoom, zoom));
+
+    emit zoomChanged(zoom);
 }
 
 void View::setMode(Mode newMode)
@@ -240,12 +257,12 @@ void View::fitInView()
 
     // Update and cap the scale factor
     qreal currentScaleFactor = _scaleFactor;
+    qreal newScaleFactor = _scaleFactor;
     QGraphicsView::fitInView(rect, Qt::KeepAspectRatio);
-    _scaleFactor = viewport()->geometry().width() / mapToScene(viewport()->geometry()).boundingRect().width();
-    if (currentScaleFactor < 1) {
-        _scaleFactor = std::min(_scaleFactor, 1.0);
-    } else {
-        _scaleFactor = std::min(_scaleFactor, currentScaleFactor);
-    }
-    updateScale();
+    newScaleFactor = viewport()->geometry().width() / mapToScene(viewport()->geometry()).boundingRect().width();
+    if (currentScaleFactor < 1)
+        newScaleFactor = std::min(newScaleFactor, 1.0);
+    else
+        newScaleFactor = std::min(newScaleFactor, currentScaleFactor);
+    setZoomValue(newScaleFactor);
 }

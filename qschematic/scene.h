@@ -1,17 +1,18 @@
 #pragma once
 
-#include <algorithm>
-#include <memory>
-#include <functional>
-#include <QGraphicsScene>
-#include <QUndoStack>
-#include <gpds/serialize.hpp>
-#include "wire_system/manager.h"
 #include "settings.h"
 #include "items/item.h"
 #include "items/wire.h"
-#include "qschematic_export.h"
+#include "wire_system/manager.h"
 //#include "utils/itemscustodian.h"
+
+#include <gpds/serialize.hpp>
+#include <QGraphicsScene>
+#include <QUndoStack>
+
+#include <algorithm>
+#include <memory>
+#include <functional>
 
 namespace QSchematic {
 
@@ -19,7 +20,7 @@ namespace QSchematic {
     class Connector;
     class WireNet;
 
-    class QSCHEMATIC_EXPORT Scene :
+    class Scene :
         public QGraphicsScene,
         public gpds::serialize
     {
@@ -101,8 +102,8 @@ namespace QSchematic {
     signals:
         void modeChanged(int newMode);
         void isDirtyChanged(bool isDirty);
-        void itemAdded(const std::shared_ptr<const Item> item);
-        void itemRemoved(const std::shared_ptr<const Item> item);
+        void itemAdded(std::shared_ptr<Item> item);
+        void itemRemoved(std::shared_ptr<Item> item);
         void itemHighlighted(const std::shared_ptr<const Item>& item);
 
     protected:
@@ -137,6 +138,18 @@ namespace QSchematic {
         void setupNewItem(Item& item);
         void generateConnections();
         void finishCurrentWire();
+
+        /**
+         * Make new wire.
+         *
+         * @details This makes a new wire. If @p _wireFactory is non-null, the wire factory is used. Otherwise, the
+         *          built-in wire type is used.
+         *
+         * @return The new wire.
+         */
+        [[nodiscard]]
+        std::shared_ptr<Wire>
+        make_wire() const;
 
         // TODO add to "central" sh-ptr management
         QList<std::shared_ptr<Item>> _keep_alive_an_event_loop;

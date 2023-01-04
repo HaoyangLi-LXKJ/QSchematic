@@ -16,6 +16,7 @@
 
 #include <QToolBar>
 #include <QAction>
+#include <QActionGroup>
 #include <QFile>
 #include <QDir>
 #include <QMenuBar>
@@ -25,7 +26,6 @@
 #include <QGraphicsSceneContextMenuEvent>
 #include <QInputDialog>
 #include <QFileDialog>
-#include <QTextCodec>
 #ifndef QT_NO_PRINTER
     #include <QPrinter>
     #include <QPrintDialog>
@@ -34,6 +34,11 @@
 #include <functional>
 #include <memory>
 #include <sstream>
+
+
+#warning TEMPORARY
+#include <qschematic/items/widget.h>
+#include <QDial>
 
 const QString FILE_FILTERS = "XML (*.xml)";
 
@@ -50,7 +55,7 @@ MainWindow::MainWindow(QWidget *parent)
     _settings.routeStraightAngles = true;
 
     // Scene (object needed in createActions())
-    _scene = new QSchematic::Scene;
+    _scene = new QSchematic::Scene(this);
 
     // Create actions
     createActions();
@@ -72,12 +77,9 @@ MainWindow::MainWindow(QWidget *parent)
             break;
         }
     });
-    connect(_scene, &QSchematic::Scene::itemHighlighted, [](const auto& item){
-        qInfo() << "Item highlighted: " << item.get();
-    });
 
     // View
-    _view = new QSchematic::View;
+    _view = new QSchematic::View(this);
     _view->setSettings(_settings);
     _view->setScene(_scene);
 
@@ -90,14 +92,14 @@ MainWindow::MainWindow(QWidget *parent)
     addDockWidget(Qt::LeftDockWidgetArea, itemLibraryDock);
 
     // Undo view
-    _undoView = new QUndoView(_scene->undoStack());
+    _undoView = new QUndoView(_scene->undoStack(), this);
     QDockWidget* undoDockWiget = new QDockWidget;
-    undoDockWiget->setWindowTitle("Command histoy");
+    undoDockWiget->setWindowTitle("Command History");
     undoDockWiget->setWidget(_undoView);
     addDockWidget(Qt::LeftDockWidgetArea, undoDockWiget);
 
     // Netlist viewer
-    _netlistViewer = new ::Netlist::Viewer();
+    _netlistViewer = new ::Netlist::Viewer(this);
     QDockWidget* netlistviewerDockWidget = new QDockWidget;
     netlistviewerDockWidget->setWindowTitle(QStringLiteral("Netlist Viewer"));
     netlistviewerDockWidget->setWidget(_netlistViewer);
@@ -106,20 +108,20 @@ MainWindow::MainWindow(QWidget *parent)
     // Menus
     {
         // File menu
-        QMenu* fileMenu = new QMenu(QStringLiteral("&File"));
+        QMenu* fileMenu = new QMenu(QStringLiteral("&File"), this);
         fileMenu->addAction(_actionOpen);
         fileMenu->addAction(_actionSave);
         fileMenu->addSeparator();
         fileMenu->addAction(_actionPrint);
 
         // Menubar
-        QMenuBar* menuBar = new QMenuBar;
+        QMenuBar* menuBar = new QMenuBar(this);
         menuBar->addMenu(fileMenu);
         setMenuBar(menuBar);
     }
 
     // Toolbar
-    QToolBar* editorToolbar = new QToolBar;
+    QToolBar* editorToolbar = new QToolBar(this);
     editorToolbar->addAction(_actionUndo);
     editorToolbar->addAction(_actionRedo);
     editorToolbar->addSeparator();
@@ -132,21 +134,31 @@ MainWindow::MainWindow(QWidget *parent)
     addToolBar(editorToolbar);
 
     // View toolbar
-    QToolBar* viewToolbar = new QToolBar;
+    QToolBar* viewToolbar = new QToolBar(this);
     viewToolbar->addAction(_actionShowGrid);
     viewToolbar->addAction(_actionFitAll);
     addToolBar(viewToolbar);
 
     // Debug toolbar
-    QToolBar* debugToolbar = new QToolBar;
+    QToolBar* debugToolbar = new QToolBar(this);
     debugToolbar->addAction(_actionDebugMode);
     addToolBar(debugToolbar);
+
+    {
+        auto _deleteme2 = new QAction("Widget");
+        debugToolbar->addAction(_deleteme2);
+        connect(_deleteme2, &QAction::triggered, [this]{
+            auto item = std::make_shared<QSchematic::Widget>(4242);
+            item->setWidget(new QDial);
+            _scene->addItem(item);
+        });
+    }
 
     // Central widget
     setCentralWidget(_view);
 
     // Misc
-    setWindowTitle("Schematic Editor");
+    setWindowTitle("QSchematic Editor");
     resize( WINDOW_WIDTH, WINDOW_HEIGHT );
 #ifdef WINDOW_MAXIMIZE
     setWindowState(Qt::WindowMaximized);
@@ -192,11 +204,16 @@ bool MainWindow::load()
         return false;
     }
 
+    return load(path);
+}
+
+bool MainWindow::load(const QString& filepath)
+{
     // Get rid of everything existing
     _scene->clear();
 
     // Open the file
-    QFile file(path);
+    QFile file(filepath);
     file.open(QFile::ReadOnly);
     if (!file.isOpen()) {
         return false;
@@ -217,7 +234,7 @@ bool MainWindow::load()
 void MainWindow::createActions()
 {
     // Open
-    _actionOpen = new QAction;
+    _actionOpen = new QAction(this);
     _actionOpen->setText("Open");
     _actionOpen->setIcon( QIcon( ":/folder_open.svg" ) );
     _actionOpen->setToolTip("Open a file");
@@ -227,7 +244,7 @@ void MainWindow::createActions()
     });
 
     // Save
-    _actionSave = new QAction;
+    _actionSave = new QAction(this);
     _actionSave->setText("Save");
     _actionSave->setToolTip("Save to a file");
     _actionSave->setIcon( QIcon( ":/save.svg" ) );
@@ -237,7 +254,7 @@ void MainWindow::createActions()
     });
 
     // Print
-    _actionPrint = new QAction;
+    _actionPrint = new QAction(this);
     _actionPrint->setText("Print");
     _actionPrint->setShortcut(QKeySequence::Print);
     _actionPrint->setIcon( QIcon( ":/print.svg" ) );
@@ -278,7 +295,7 @@ void MainWindow::createActions()
     actionGroupMode->addAction(_actionModeWire);
 
     // Show grid
-    _actionShowGrid = new QAction("Toggle Grid");
+    _actionShowGrid = new QAction("Toggle Grid", this);
     _actionShowGrid->setIcon( QIcon( ":/grid.svg") );
     _actionShowGrid->setCheckable(true);
     _actionShowGrid->setChecked(_settings.showGrid);
@@ -289,13 +306,13 @@ void MainWindow::createActions()
     });
 
     // Fit all
-    _actionFitAll = new QAction("Fit All");
+    _actionFitAll = new QAction("Fit All", this);
     _actionFitAll->setIcon(QIcon(":/fit_all.svg"));
     _actionFitAll->setToolTip("Center view on all items");
     connect(_actionFitAll, &QAction::triggered, [this]{_view->fitInView();});
 
     // Route straight angles
-    _actionRouteStraightAngles = new QAction("Wire angles");
+    _actionRouteStraightAngles = new QAction("Wire angles", this);
     _actionRouteStraightAngles->setIcon( QIcon( ":/wire_rightangle.svg") );
     _actionRouteStraightAngles->setCheckable(true);
     _actionRouteStraightAngles->setChecked(_settings.routeStraightAngles);
@@ -306,7 +323,7 @@ void MainWindow::createActions()
     });
 
     // Generate netlist
-    _actionGenerateNetlist = new QAction("Generate netlist");
+    _actionGenerateNetlist = new QAction("Generate netlist", this);
     _actionGenerateNetlist->setIcon( QIcon( ":/netlist.svg" ) );
     connect(_actionGenerateNetlist, &QAction::triggered, [this]{
         QSchematic::Netlist<Operation*, OperationConnector*> netlist;
@@ -317,7 +334,7 @@ void MainWindow::createActions()
     });
 
     // Debug mode
-    _actionDebugMode = new QAction("Debug");
+    _actionDebugMode = new QAction("Debug", this);
     _actionDebugMode->setCheckable(true);
     _actionDebugMode->setIcon( QIcon( ":/bug.svg") );
     _actionDebugMode->setChecked(_settings.debug);
@@ -353,47 +370,5 @@ void MainWindow::demo()
     _scene->clear();
     _scene->setSceneRect(-500, -500, 3000, 3000);
 
-    auto o1 = std::make_shared<Operation>();
-    o1->addConnector(std::make_shared<OperationConnector>(QPoint(0, 2), QStringLiteral("in")));
-    o1->addConnector(std::make_shared<OperationConnector>(QPoint(8, 2), QStringLiteral("out")));
-    o1->setGridPos(0, 0);
-    o1->setSize(160, 80);
-    o1->setConnectorsMovable(true);
-    o1->setText(QStringLiteral("Operation 1"));
-    o1->label()->setPos(0, 110);
-    _scene->addItem(o1);
-
-    auto o2 = std::make_shared<Operation>();
-    o2->addConnector(std::make_shared<OperationConnector>(QPoint(0, 2), QStringLiteral("in")));
-    o2->addConnector(std::make_shared<OperationConnector>(QPoint(8, 2), QStringLiteral("out")));
-    o2->setGridPos(-14, 9);
-    o2->setSize(160, 80);
-    o2->setConnectorsMovable(true);
-    o2->setText(QStringLiteral("Operation 2"));
-    o2->label()->setPos(0, 110);
-    _scene->addItem(o2);
-
-    auto o3 = std::make_shared<Operation>();
-    o3->setSize(160, 120);
-    o3->addConnector(std::make_shared<OperationConnector>(QPoint(0, 2), QStringLiteral("in 1")));
-    o3->addConnector(std::make_shared<OperationConnector>(QPoint(0, 4), QStringLiteral("in 2")));
-    o3->addConnector(std::make_shared<OperationConnector>(QPoint(8, 3), QStringLiteral("out")));
-    o3->setGridPos(18, -8);
-    o3->setConnectorsMovable(true);
-    o3->setText(QStringLiteral("Operation 3"));
-    o3->label()->setPos(0, 150);
-    _scene->addItem(o3);
-
-    auto o4 = std::make_shared<Operation>();
-    o4->setSize(160, 120);
-    o4->addConnector(std::make_shared<OperationConnector>(QPoint(0, 2), QStringLiteral("in 1")));
-    o4->addConnector(std::make_shared<OperationConnector>(QPoint(0, 4), QStringLiteral("in 2")));
-    o4->addConnector(std::make_shared<OperationConnector>(QPoint(8, 3), QStringLiteral("out")));
-    o4->setGridPos(18, 10);
-    o4->setConnectorsMovable(true);
-    o4->setText(QStringLiteral("Operation 4"));
-    o4->label()->setPos(0, 150);
-    _scene->addItem(o4);
-
-    _scene->undoStack()->clear();
+    load(":/demo_01.xml");
 }

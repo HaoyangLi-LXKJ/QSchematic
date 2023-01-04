@@ -1,17 +1,17 @@
+#include "operationconnector.h"
+#include "operation.h"
+#include "popup/popup_connector.hpp"
+
+#include <qschematic/items/label.h>
+#include <qschematic/scene.h>
+#include <qschematic/commands/commanditemremove.h>
+#include <qschematic/commands/commanditemvisibility.h>
+#include <qschematic/commands/commandlabelrename.h>
+
 #include <QPainter>
 #include <QGraphicsSceneContextMenuEvent>
 #include <QMenu>
 #include <QInputDialog>
-
-#include "qschematic/items/label.h"
-#include "qschematic/scene.h"
-#include "qschematic/commands/commanditemremove.h"
-#include "qschematic/commands/commanditemvisibility.h"
-#include "qschematic/commands/commandlabelrename.h"
-
-#include "operationconnector.h"
-#include "operation.h"
-#include "popup/popup_connector.hpp"
 
 #define SIZE (_settings.gridSize/2)
 #define RECT (QRectF(-SIZE, -SIZE, 2*SIZE, 2*SIZE))
@@ -102,6 +102,18 @@ void OperationConnector::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
     // Create the menu
     QMenu menu;
     {
+        // Connector visibility
+        QAction* visibility = new QAction;
+        visibility->setCheckable(true);
+        visibility->setChecked(isVisible());
+        visibility->setText("Visible");
+        connect(visibility, &QAction::toggled, [this](const bool enabled) {
+            if (scene())
+                scene()->undoStack()->push(new QSchematic::CommandItemVisibility(this->shared_from_this(), enabled));
+            else
+                setVisible(enabled);
+        });
+
         // Label visibility
         QAction* labelVisibility = new QAction;
         labelVisibility->setCheckable(true);
@@ -119,7 +131,17 @@ void OperationConnector::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
         QAction* text = new QAction;
         text->setText("Rename ...");
         connect(text, &QAction::triggered, [this] {
-            const QString& newText = QInputDialog::getText(nullptr, "Rename Connector", "New connector text", QLineEdit::Normal, label()->text());
+            bool ok = false;
+            const QString& newText = QInputDialog::getText(
+                nullptr,
+                "Rename Connector",
+                "New connector text",
+                QLineEdit::Normal,
+                label()->text(),
+                &ok
+            );
+            if (!ok)
+                return;
 
             if (scene()) {
                 scene()->undoStack()->push(new QSchematic::CommandLabelRename(label().get(), newText));
@@ -167,6 +189,7 @@ void OperationConnector::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
         });
 
         // Assemble
+        menu.addAction(visibility);
         menu.addAction(labelVisibility);
         menu.addAction(text);
         menu.addAction(alignLabel);
