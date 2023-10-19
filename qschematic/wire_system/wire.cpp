@@ -496,6 +496,7 @@ void wire::move(const QVector2D& movedBy)
     // Move junctions
     for (const auto& index : junctions()) {
         const auto& junction = points().at(index);
+        if(net())
         for (const auto& wire : net()->wires()) {
             if (!wire->connected_wires().contains(this)) {
                 continue;

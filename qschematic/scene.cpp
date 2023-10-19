@@ -1023,7 +1023,7 @@ void Scene::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
           _newWire->append_point(snappedPos);
           _newWireSegment = false;
         }
-        else
+        else if(_newWire->pointsAbsolute().count()>=3)
         {
           // Create the intermediate point that creates the straight angle
           point p1(_newWire->pointsAbsolute().at(_newWire->pointsAbsolute().count() - 3));
