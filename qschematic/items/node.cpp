@@ -762,29 +762,51 @@ void Node::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
       {
         if (it.value().contains(event->pos().toPoint()))
         {
+          auto toSetCursor = Qt::SizeAllCursor;
           switch (it.key())
           {
             case RectanglePointTopLeft:
             case RectanglePointBottomRight:
-              setCursor(Qt::SizeFDiagCursor);
+              toSetCursor = Qt::SizeFDiagCursor;
               break;
 
             case RectanglePointBottom:
             case RectanglePointTop:
-              setCursor(Qt::SizeVerCursor);
+              toSetCursor = Qt::SizeVerCursor;
               break;
 
             case RectanglePointBottomLeft:
             case RectanglePointTopRight:
-              setCursor(Qt::SizeBDiagCursor);
+              toSetCursor = Qt::SizeBDiagCursor;
               break;
 
             case RectanglePointRight:
             case RectanglePointLeft:
-              setCursor(Qt::SizeHorCursor);
+              toSetCursor = Qt::SizeHorCursor;
               break;
           }
 
+          if (rotation() == 90.0 || rotation() == 270.0)
+          {
+            switch (toSetCursor)
+            {
+              case Qt::SizeHorCursor:
+                toSetCursor = Qt::SizeVerCursor;
+                break;
+              case Qt::SizeVerCursor:
+                toSetCursor = Qt::SizeHorCursor;
+                break;
+              case Qt::SizeBDiagCursor:
+                toSetCursor = Qt::SizeFDiagCursor;
+                break;
+              case Qt::SizeFDiagCursor:
+                toSetCursor = Qt::SizeBDiagCursor;
+                break;
+              default:
+                  ;
+            }
+          }
+          setCursor(toSetCursor);
           break;
         }
 
