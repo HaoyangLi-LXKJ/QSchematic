@@ -10,7 +10,7 @@
 #include "wire.h"
 #include "scene.h"
 
-const qreal SIZE               = 1;
+const qreal SIZE               = 2;
 const QColor COLOR_BODY_FILL   = QColor(Qt::green);
 const QColor COLOR_BODY_BORDER = QColor(Qt::black);
 const qreal PEN_WIDTH          = 1.5;
