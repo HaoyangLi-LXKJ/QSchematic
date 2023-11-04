@@ -570,11 +570,15 @@ void Node::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
         if (canSnapToGrid())
         {
-          newMousePos = _settings.snapToGrid(newMousePos);
+          newMousePos = _settings.snapToGrid(newMousePos, 2);
         }
 
         // Calculate mouse movement in grid units
         QPointF d(newMousePos - _lastMousePosWithGridMove);
+
+        // add offset
+        d.rx() += std::fmod(d.x(), qreal(_settings.gridSize * 2)) * _settings.gridSize * d.x() >0 ? 1 : -1;
+        d.ry() += std::fmod(d.y(), qreal(_settings.gridSize * 2)) * _settings.gridSize * d.y() >0 ? 1 : -1;;
 
         // Rotate mouse movement
         {

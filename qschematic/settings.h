@@ -41,7 +41,7 @@ public:
   // Generic
   QPoint toGridPoint(const QPointF& point) const;
   QPoint toScenePoint(const QPoint& gridPoint) const;
-  QPoint snapToGrid(const QPointF& scenePoint) const;
+  QPoint snapToGrid(const QPointF& scenePoint, int factor = 1) const;
   QVector2D snapToGrid(const QVector2D& sceneVector) const;
   QSize snapToGrid(const QSizeF& sceneSize) const;
 };
