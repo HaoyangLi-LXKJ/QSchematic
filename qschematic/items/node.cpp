@@ -502,7 +502,7 @@ void Node::mousePressEvent(QGraphicsSceneMouseEvent* event)
       if (it.value().contains(event->pos().toPoint()))
       {
         _mode = Resize;
-        _lastMousePosWithGridMove = event->scenePos();
+        _lastMousePosWithGridMove = _settings.snapToGrid(event->scenePos());
         _resizeHandle = it.key();
         break;
       }
@@ -577,8 +577,8 @@ void Node::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
         QPointF d(newMousePos - _lastMousePosWithGridMove);
 
         // add offset
-        d.rx() += std::fmod(d.x(), qreal(_settings.gridSize * 2)) * _settings.gridSize * d.x() >0 ? 1 : -1;
-        d.ry() += std::fmod(d.y(), qreal(_settings.gridSize * 2)) * _settings.gridSize * d.y() >0 ? 1 : -1;;
+        d.rx() += std::fmod(d.x(), qreal(_settings.gridSize * 2)) * (_settings.gridSize * d.x() >0 ? 1 : -1);
+        d.ry() += std::fmod(d.y(), qreal(_settings.gridSize * 2)) * (_settings.gridSize * d.y() >0 ? 1 : -1);
 
         // Rotate mouse movement
         {
@@ -685,6 +685,7 @@ void Node::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
         auto newOrigin = QPointF(newSize.width() / 2, newSize.height() / 2) + newPos - pos();
         auto angle = rotation() * M_PI / 180;
         auto offset = newOrigin - transformOriginPoint();
+        offset = _settings.snapToGrid(offset);
         auto newOriginRotated = QPointF(qCos(angle) * offset.rx() - qSin(angle) * offset.ry(), qSin(angle) * offset.rx() + qCos(angle) * offset.ry());
         auto correction = newOriginRotated - offset;
         newPos += correction;

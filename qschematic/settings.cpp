@@ -20,8 +20,8 @@ QPoint Settings::toScenePoint(const QPoint& gridCoordinate) const
 
 QPoint Settings::snapToGrid(const QPointF& scenePoint, int factor) const
 {
-    int xV = qRound(scenePoint.x() / gridSize / factor) * gridSize * factor;
-    int yV = qRound(scenePoint.y() / gridSize / factor) * gridSize * factor;
+    int xV = qRound(scenePoint.x() / (gridSize * factor)) * gridSize * factor;
+    int yV = qRound(scenePoint.y() / (gridSize * factor)) * gridSize * factor;
 
     return QPoint(xV, yV);
 }
