@@ -13,7 +13,7 @@
 
 
 const QColor COLOR_LABEL = QColor("#000000");
-const QColor COLOR_LABEL_HIGHLIGHTED = QColor("#dc2479");
+const QColor COLOR_LABEL_HIGHLIGHTED = Qt::yellow;//QColor("#dc2479");
 const qreal LABEL_TEXT_PADDING = 2;
 
 using namespace QSchematic;
@@ -251,7 +251,7 @@ void Label::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWi
 
     // Clear the text rectangle
     painter->setPen(Qt::NoPen);
-    painter->setBrush(Qt::white);
+    painter->setBrush(Qt::transparent);
     painter->drawRect(_textRect.adjusted(penLine.width() / 2, penLine.width() / 2, -penLine.width() / 2, -penLine.width() / 2));
 
     // Draw the border around the label text
