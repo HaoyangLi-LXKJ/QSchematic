@@ -7,6 +7,7 @@
 #include <QMimeData>
 #include <QtMath>
 #include <QTimer>
+#include <unordered_set>
 
 #include "scene.h"
 #include "commands/commanditemmove.h"
@@ -657,6 +658,37 @@ void Scene::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     case NormalMode:
     {
       QGraphicsScene::mouseReleaseEvent(event);
+
+      {
+        // calculate relation conn
+        if(!selectedItems().empty())
+        {
+          std::unordered_set<wire*> wireSet;
+          std::unordered_set<Connector*> connSet;
+          for(const auto& item : selectedItems())
+          {
+            auto c = item->sharedPtr<Connector>();
+            auto w = item->sharedPtr<wire>();
+            if(c)
+            {
+              connSet.insert(c.get());
+            }
+            else if(w)
+            {
+              wireSet.insert(w.get());
+            }
+          }
+          for(const auto& conn : connectors())
+          {
+            auto w = wire_manager()->attached_wire(conn.get());
+            if(!connSet.count(conn.get()) && wireSet.count(w))
+            {
+              _keepConn.append(conn);
+            }
+          }
+        }
+      }
+
 
       for (const auto& net : m_wire_manager->nets())
       {
@@ -1321,6 +1353,11 @@ QList<std::shared_ptr<Label>> Scene::labels() const
   }
 
   return labels;
+}
+
+QList<std::shared_ptr<Connector>> Scene::keepConnectors() const
+{
+  return _keepConn;
 }
 
 void Scene::setWireNetFactory(std::function<std::shared_ptr<WireNet> ()> func)

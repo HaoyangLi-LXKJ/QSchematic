@@ -20,7 +20,23 @@ void wire::set_manager(wire_system::manager* manager)
 
 QVector<point> wire::points() const
 {
-    return m_points;
+    // defalut data
+    point def{0,0};
+    // filter abnormal data
+    QVector<point> ret;
+    for(auto p : m_points)
+    {
+      qreal x = p.x();
+      qreal y = p.y();
+      if(qIsNaN(x) || qIsInf(x) || qIsNaN(y) || qIsInf(y))
+      {
+        ret.append(def);
+      }
+      else {
+        ret.append(p);
+      }
+    }
+    return ret;
 }
 
 int wire::points_count() const
