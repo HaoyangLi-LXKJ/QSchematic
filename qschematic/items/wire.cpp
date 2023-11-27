@@ -673,7 +673,7 @@ QVariant Wire::itemChange(QGraphicsItem::GraphicsItemChange change, const QVaria
       {
         int index = scene()->wire_manager()->attached_point(conn.get());
         QVector2D moveBy(conn->scenePos() - pointsAbsolute().at(index));
-        move_point_by(index, moveBy);
+        move_point_by(index, moveBy,true);
       }
     }
 
@@ -717,7 +717,7 @@ QVariant Wire::itemChange(QGraphicsItem::GraphicsItemChange change, const QVaria
     {
       setZValue(zValue() - 1);
     }
-
+    setSelectStatus(isSelected());
     break;
 
   default:

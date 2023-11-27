@@ -342,9 +342,17 @@ void wire::insert_point(int index, const QPointF& point)
         m_manager->point_inserted(this, index);
     }
 }
-
-void wire::move_point_by(int index, const QVector2D& moveBy)
+void wire::setSelectStatus(bool isSelect)
 {
+    isSelectedStatus = isSelect;
+}
+
+void wire::move_point_by(int index, const QVector2D& moveBy,bool isKeepConn)
+{
+    if(isSelectedStatus && !isKeepConn)
+    {
+        return;
+    }
     if (index < 0 || index > points_count() - 1) {
         return;
     }
