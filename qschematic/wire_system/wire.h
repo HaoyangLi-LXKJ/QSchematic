@@ -34,7 +34,7 @@ namespace wire_system
         virtual void prepend_point(const QPointF& point);
         virtual void append_point(const QPointF& point);
         virtual void insert_point(int index, const QPointF& point);
-        void move_point_by(int index, const QVector2D& moveBy,bool isKeepConn = false);
+        virtual void move_point_by(int index, const QVector2D& moveBy);
         [[nodiscard]] bool point_is_on_wire(const QPointF& point) const;
         void move(const QVector2D& movedBy);
         void simplify();
@@ -44,7 +44,6 @@ namespace wire_system
         void disconnectWire(wire* wire);
         virtual void add_segment(int index);
         void remove_point(int index);
-        void setSelectStatus(bool isSelect);
 
     protected:
         void move_junctions_to_new_segment(const line& oldSegment, const line& newSegment);
@@ -62,6 +61,5 @@ namespace wire_system
         QList<wire*> m_connectedWires;
         std::shared_ptr<wire_system::net> m_net;
         class manager* m_manager;
-        bool isSelectedStatus = false;
     };
 }

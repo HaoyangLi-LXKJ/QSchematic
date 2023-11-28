@@ -661,17 +661,21 @@ void Scene::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
       {
         // calculate relation conn
-        if(!selectedItems().empty())
+        _keepPointOnConnector.clear();
+        if(!selectedTopLevelItems().empty())
         {
           std::unordered_set<wire*> wireSet;
           std::unordered_set<Connector*> connSet;
-          for(const auto& item : selectedItems())
+          for(const auto& item : selectedTopLevelItems())
           {
-            auto c = item->sharedPtr<Connector>();
+            auto n = item->sharedPtr<Node>();
             auto w = item->sharedPtr<wire>();
-            if(c)
+            if(n)
             {
-              connSet.insert(c.get());
+              for(auto& conn : n->connectors())
+              {
+                connSet.insert(conn.get());
+              }
             }
             else if(w)
             {
@@ -683,12 +687,11 @@ void Scene::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
             auto w = wire_manager()->attached_wire(conn.get());
             if(!connSet.count(conn.get()) && wireSet.count(w))
             {
-              _keepConn.append(conn);
+              _keepPointOnConnector.append(conn);
             }
           }
         }
       }
-
 
       for (const auto& net : m_wire_manager->nets())
       {
@@ -1355,9 +1358,9 @@ QList<std::shared_ptr<Label>> Scene::labels() const
   return labels;
 }
 
-QList<std::shared_ptr<Connector>> Scene::keepConnectors() const
+QList<std::shared_ptr<Connector>> Scene::keepPointOnConnectors() const
 {
-  return _keepConn;
+  return _keepPointOnConnector;
 }
 
 void Scene::setWireNetFactory(std::function<std::shared_ptr<WireNet> ()> func)

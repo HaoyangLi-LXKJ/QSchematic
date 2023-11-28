@@ -301,6 +301,14 @@ void Wire::move_point_to(int index, const QPointF &moveTo)
   calculateBoundingRect();
   update();
 }
+void Wire::move_point_by(int index, const QVector2D& moveBy)
+{
+  if(isSelected())
+  {
+    return;
+  }
+  wire_system::wire::move_point_by(index, moveBy);
+}
 
 void Wire::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
@@ -666,14 +674,13 @@ QVariant Wire::itemChange(QGraphicsItem::GraphicsItemChange change, const QVaria
     {
       break;
     }
-
-    for(const auto& conn : scene()->keepConnectors())
+    for(const auto& conn : scene()->keepPointOnConnectors())
     {
       if (scene()->wire_manager()->attached_wire(conn.get()) == this)
       {
         int index = scene()->wire_manager()->attached_point(conn.get());
         QVector2D moveBy(conn->scenePos() - pointsAbsolute().at(index));
-        move_point_by(index, moveBy,true);
+        wire_system::wire::move_point_by(index, moveBy);
       }
     }
 
@@ -717,7 +724,6 @@ QVariant Wire::itemChange(QGraphicsItem::GraphicsItemChange change, const QVaria
     {
       setZValue(zValue() - 1);
     }
-    setSelectStatus(isSelected());
     break;
 
   default:

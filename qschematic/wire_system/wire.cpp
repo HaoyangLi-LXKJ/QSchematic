@@ -342,17 +342,9 @@ void wire::insert_point(int index, const QPointF& point)
         m_manager->point_inserted(this, index);
     }
 }
-void wire::setSelectStatus(bool isSelect)
-{
-    isSelectedStatus = isSelect;
-}
 
-void wire::move_point_by(int index, const QVector2D& moveBy,bool isKeepConn)
+void wire::move_point_by(int index, const QVector2D& moveBy)
 {
-    if(isSelectedStatus && !isKeepConn)
-    {
-        return;
-    }
     if (index < 0 || index > points_count() - 1) {
         return;
     }
@@ -374,7 +366,7 @@ void wire::move_point_by(int index, const QVector2D& moveBy,bool isKeepConn)
         // this is unnecessary as we're just moving one of the two points.
         if (!line.is_null() && (moveVertically || moveHorizontally)) {
             qreal lineLength = line.lenght();
-            QPointF p;
+           QPointF p;
 
             // The line is horizontal
             if (line.is_horizontal()) {

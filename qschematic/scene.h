@@ -110,7 +110,7 @@ public:
 
   QList<std::shared_ptr<Label>> labels() const;
 
-  QList<std::shared_ptr<Connector>> keepConnectors() const;
+  QList<std::shared_ptr<Connector>> keepPointOnConnectors() const;
 
   void setWireNetFactory(std::function<std::shared_ptr<WireNet>()> func);
   std::shared_ptr<WireNet> createWireNet();
@@ -177,7 +177,7 @@ private:
   bool _movingNodes;
   QPointF _lastMousePos;
   QMap<std::shared_ptr<Item>, QPointF> _initialItemPositions;
-  QList<std::shared_ptr<Connector>> _keepConn;
+  QList<std::shared_ptr<Connector>> _keepPointOnConnector;
   QPointF _initialCursorPosition;
   QUndoStack* _undoStack;
   std::shared_ptr<wire_system::manager> m_wire_manager;

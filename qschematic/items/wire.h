@@ -42,6 +42,7 @@ namespace QSchematic {
         QVector<QPointF> pointsRelative() const;
         QVector<QPointF> pointsAbsolute() const;
         void move_point_to(int index, const QPointF& moveTo) override;
+        void move_point_by(int index, const QVector2D& moveBy) override;
         bool movingWirePoint() const;
         void rename_net();
 
