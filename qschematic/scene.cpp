@@ -7,6 +7,7 @@
 #include <QMimeData>
 #include <QtMath>
 #include <QTimer>
+#include <unordered_set>
 
 #include "scene.h"
 #include "commands/commanditemmove.h"
@@ -40,7 +41,7 @@ Scene::Scene(QObject* parent) :
     connect(m_wire_manager.get(), &wire_system::manager::wire_point_moved, this, &Scene::wirePointMoved);
 
     // Undo stack
-    _undoStack = new QUndoStack(this);
+    _undoStack = new QUndoStack;
     connect(_undoStack, &QUndoStack::cleanChanged, [this](bool isClean) {
         emit isDirtyChanged(!isClean);
     });
@@ -80,6 +81,8 @@ gpds::container Scene::to_container() const
         r.add_value("y", rect.y());
         r.add_value("width", rect.width());
         r.add_value("height", rect.height());
+    r.add_value("background_color", backgroundColor().name().toStdString());
+    r.add_value("grid_color", gridColor().name().toStdString());
         scene.add_value("rect", r);
     }
 
@@ -89,15 +92,26 @@ gpds::container Scene::to_container() const
         nodesList.add_value("node", node->to_container());
     }
 
-    // Nets
-    gpds::container netsList;
-    for (const auto& net : m_wire_manager->nets()) {
+  // Labels
+  gpds::container labelsList;
 
-        // Make sure it's a WireNet
-        auto wire_net = std::dynamic_pointer_cast<WireNet>(net);
-        if (!wire_net) {
-            continue;
-        }
+  for (const auto& label : labels())
+  {
+    labelsList.add_value("label", label->to_container());
+  }
+
+  // Nets
+  gpds::container netsList;
+
+  for (const auto& net : m_wire_manager->nets())
+  {
+    // Make sure it's a WireNet
+    auto wire_net = std::dynamic_pointer_cast<WireNet>(net);
+
+    if (!wire_net)
+    {
+      continue;
+    }
 
         netsList.add_value("net", wire_net->to_container());
     }
@@ -106,6 +120,7 @@ gpds::container Scene::to_container() const
     gpds::container c;
     c.add_value("scene", scene);
     c.add_value("nodes", nodesList);
+c.add_value("labels", labelsList);
     c.add_value("nets", netsList);
 
     return c;
@@ -128,6 +143,8 @@ void Scene::from_container(const gpds::container& container)
             rect.setHeight(rectContainer->get_value<int>("height").value_or(0));
 
             setSceneRect( rect );
+			setBackgroundColor(QColor(QString::fromStdString(rectContainer->get_value<std::string>("background_color").value_or(""))));
+      		setGridColor(QColor(QString::fromStdString(rectContainer->get_value<std::string>("grid_color").value_or(""))));
         }
     }
 
@@ -146,6 +163,27 @@ void Scene::from_container(const gpds::container& container)
             addItem(node);
         }
     }
+	
+	  // Labels
+  const gpds::container* labelsContainer = container.get_value<gpds::container*>("labels").value_or(nullptr);
+
+  if (labelsContainer)
+  {
+    for (const auto& labelContainer : labelsContainer->get_values<gpds::container*>("label"))
+    {
+      Q_ASSERT(labelContainer);
+      auto label = ItemFactory::instance().from_container(*labelContainer);
+
+      if (!label)
+      {
+        qWarning("Scene::from_container(): Couldn't restore label. Skipping.");
+        continue;
+      }
+
+      label->from_container(*labelContainer);
+      addItem(label);
+    }
+  }
 
     // Nets
     const gpds::container* netsContainer = container.get_value<gpds::container*>("nets").value_or(nullptr);
@@ -155,7 +193,8 @@ void Scene::from_container(const gpds::container& container)
         for (const gpds::container* netContainer : netsContainer->get_values<gpds::container*>("net")) {
             Q_ASSERT( netContainer );
 
-            auto net = std::make_shared<WireNet>();
+            //      auto net = std::make_shared<WireNet>();
+      		auto net = createWireNet();
             net->setScene(this);
             net->set_manager(wire_manager().get());
             net->from_container( *netContainer );
@@ -469,6 +508,7 @@ std::shared_ptr<wire_system::manager> Scene::wire_manager() const
     return m_wire_manager;
 }
 
+
 void Scene::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
     event->accept();
@@ -534,9 +574,18 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent* event)
         if (event->button() == Qt::LeftButton) {
 
             // Start a new wire if there isn't already one. Else continue the current one.
-            if (!_newWire) {
-                _newWire = make_wire();
-                _undoStack->push(new CommandItemAdd(this, _newWire));
+            if (!_newWire)
+        {
+          if (_wireFactory)
+          {
+            _newWire = _wireFactory();
+          }
+          else
+          {
+            _newWire = std::make_shared<Wire>();          
+			}               
+			
+			 _undoStack->push(new CommandItemAdd(this, _newWire));
                 _newWire->setPos(_settings.snapToGrid(event->scenePos()));
             }
             // Snap to grid
@@ -596,6 +645,40 @@ void Scene::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     case NormalMode:
     {
         QGraphicsScene::mouseReleaseEvent(event);
+
+        {
+            // calculate relation conn
+            _keepPointOnConnector.clear();
+            if(!selectedTopLevelItems().empty())
+            {
+                std::unordered_set<wire*> wireSet;
+                std::unordered_set<Connector*> connSet;
+                for(const auto& item : selectedTopLevelItems())
+                {
+                    auto n = item->sharedPtr<Node>();
+                    auto w = item->sharedPtr<wire>();
+                    if(n)
+                    {
+                        for(auto& conn : n->connectors())
+                        {
+                          connSet.insert(conn.get());
+                        }
+                    }
+                    else if(w)
+                    {
+                        wireSet.insert(w.get());
+                    }
+                }
+                for(const auto& conn : connectors())
+                {
+                    auto w = wire_manager()->attached_wire(conn.get());
+                    if(!connSet.count(conn.get()) && wireSet.count(w))
+                    {
+                        _keepPointOnConnector.append(conn);
+                    }
+                }
+            }
+        }
 
         for (const auto& net : m_wire_manager->nets()) {
 
@@ -853,8 +936,14 @@ void Scene::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
             break;
         }
 
-        // Transform mouse coordinates to grid positions (snapped to nearest grid point)
-        const QPointF& snappedPos = _settings.snapToGrid(event->scenePos());
+      // Don't accept any mouse move event outside the sheet
+      if (!sceneRect().contains(event->scenePos()))
+      {
+        break;
+      }
+
+      // Transform mouse coordinates to grid positions (snapped to nearest grid point)
+      const QPointF& snappedPos = _settings.snapToGrid(event->scenePos());
 
         // Add a new wire segment. Only allow straight angles (if supposed to)
         if (_settings.routeStraightAngles) {
@@ -877,7 +966,7 @@ void Scene::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
                 _newWire->append_point(snappedPos);
 
                 _newWireSegment = false;
-            } else {
+            } else if(_newWire->pointsAbsolute().count()>=3){
                 // Create the intermediate point that creates the straight angle
                 point p1(_newWire->pointsAbsolute().at(_newWire->pointsAbsolute().count() - 3));
                 QPointF p2(p1.x(), snappedPos.y());
@@ -1029,39 +1118,100 @@ QVector2D Scene::itemsMoveSnap(const std::shared_ptr<Item>& items, const QVector
     return moveBy;
 }
 
-QPixmap Scene::renderBackground(const QRect& rect) const
-{
-    // Create pixmap
-    QPixmap pixmap(rect.width(), rect.height());
+//QPixmap Scene::renderBackground(const QRect& rect) const
+//{
+//    // Create pixmap
+//    QPixmap pixmap(rect.width(), rect.height());
 
+//    // Grid pen
+//    QPen gridPen;
+//    gridPen.setStyle(Qt::SolidLine);
+//    gridPen.setColor(Qt::gray);
+//    gridPen.setCapStyle(Qt::RoundCap);
+//    gridPen.setWidth(_settings.gridPointSize);
+
+//    // Grid brush
+//    QBrush gridBrush;
+//    gridBrush.setStyle(Qt::NoBrush);
+
+//    // Create a painter
+//    QPainter painter(&pixmap);
+//    painter.setRenderHint(QPainter::Antialiasing, _settings.antialiasing);
+
+//    // Draw background
+//    pixmap.fill(Qt::white);
+
+//    // Draw the grid if supposed to
+//    if (_settings.showGrid && (_settings.gridSize > 0)) {
+//        qreal left = int(rect.left()) - (int(rect.left()) % _settings.gridSize);
+//        qreal top = int(rect.top()) - (int(rect.top()) % _settings.gridSize);
+
+//        // Create a list of points
+//        QVector<QPointF> points;
+//        for (qreal x = left; x < rect.right(); x += _settings.gridSize) {
+//            for (qreal y = top; y < rect.bottom(); y += _settings.gridSize) {
+//                points.append(QPointF(x,y));
+//            }
+//        }
+
+//        // Draw the actual grid points
+//        painter.setPen(gridPen);
+//        painter.setBrush(gridBrush);
+//        painter.drawPoints(points.data(), points.size());
+//    }
+
+//    // Mark the origin if supposed to
+//    if (_settings.debug)
+//    {
+//        painter.setPen(Qt::NoPen);
+//        painter.setBrush(QBrush(Qt::red));
+//        painter.drawEllipse(-6, -6, 12, 12);
+//    }
+
+//    painter.end();
+//    // Update
+//    _backgroundPixmap = pixmap;
+//    update();
+//}
+void Scene::renderCachedBackground()
+{
+    // Create the pixmap
+    QRect rect = sceneRect().toRect();
+
+    if (rect.isNull() || !rect.isValid())
+    {
+        return;
+    }
+
+    QPixmap pixmap(rect.width(), rect.height());
     // Grid pen
     QPen gridPen;
     gridPen.setStyle(Qt::SolidLine);
-    gridPen.setColor(Qt::gray);
+    gridPen.setColor(_gridColor);
     gridPen.setCapStyle(Qt::RoundCap);
     gridPen.setWidth(_settings.gridPointSize);
-
     // Grid brush
     QBrush gridBrush;
     gridBrush.setStyle(Qt::NoBrush);
-
     // Create a painter
     QPainter painter(&pixmap);
     painter.setRenderHint(QPainter::Antialiasing, _settings.antialiasing);
-
     // Draw background
-    pixmap.fill(Qt::white);
+    pixmap.fill(_backgroundColor);
 
     // Draw the grid if supposed to
-    if (_settings.showGrid && (_settings.gridSize > 0)) {
+    if (_settings.showGrid && (_settings.gridSize > 0))
+    {
         qreal left = int(rect.left()) - (int(rect.left()) % _settings.gridSize);
         qreal top = int(rect.top()) - (int(rect.top()) % _settings.gridSize);
-
         // Create a list of points
         QVector<QPointF> points;
-        for (qreal x = left; x < rect.right(); x += _settings.gridSize) {
-            for (qreal y = top; y < rect.bottom(); y += _settings.gridSize) {
-                points.append(QPointF(x,y));
+
+        for (qreal x = left; x < rect.right(); x += _settings.gridSize)
+        {
+            for (qreal y = top; y < rect.bottom(); y += _settings.gridSize)
+            {
+                points.append(QPointF(x, y));
             }
         }
 
@@ -1072,28 +1222,16 @@ QPixmap Scene::renderBackground(const QRect& rect) const
     }
 
     // Mark the origin if supposed to
-    if (_settings.debug) {
+    if (_settings.debug)
+    {
         painter.setPen(Qt::NoPen);
         painter.setBrush(QBrush(Qt::red));
         painter.drawEllipse(-6, -6, 12, 12);
     }
 
     painter.end();
-
-    return pixmap;
-}
-
-void Scene::renderCachedBackground()
-{
-    // Create the pixmap
-    const QRect& rect = sceneRect().toRect();
-    if (rect.isNull() || !rect.isValid())
-        return;
-
-    // Render background
-    _backgroundPixmap = std::move(renderBackground(rect));
-
     // Update
+    _backgroundPixmap = pixmap;
     update();
 }
 
@@ -1129,13 +1267,85 @@ void Scene::finishCurrentWire()
     _newWire.reset();
 }
 
-std::shared_ptr<Wire>
-Scene::make_wire() const
+const QColor& Scene::gridColor() const
 {
-    if (_wireFactory)
-        return _wireFactory();
-    else
-        return std::make_shared<Wire>();
+  return _gridColor;
+}
+
+void Scene::setGridColor(const QColor& newGridColor)
+{
+  if (_gridColor == newGridColor)
+  {
+    return;
+  }
+
+  _gridColor = newGridColor;
+  // Redraw
+  renderCachedBackground();
+  emit gridColorChanged(newGridColor);
+}
+
+QList<std::shared_ptr<Label>> Scene::labels() const
+{
+  QList<std::shared_ptr<Label>> labels;
+
+  for (auto& item : _items)
+  {
+    auto label = std::dynamic_pointer_cast<Label>(item);
+
+    if (!label)
+    {
+      continue;
+    }
+
+    labels << label;
+  }
+
+  return labels;
+}
+
+QList<std::shared_ptr<Connector>> Scene::keepPointOnConnectors() const
+{
+  return _keepPointOnConnector;
+}
+
+void Scene::setWireNetFactory(std::function<std::shared_ptr<WireNet> ()> func)
+{
+  _wireNetFactory = func;
+}
+
+std::shared_ptr<WireNet> Scene::createWireNet()
+{
+  std::shared_ptr<WireNet> wn;
+
+  if (_wireNetFactory.has_value())
+  {
+    wn = _wireNetFactory.value()();
+  }
+  else
+  {
+    wn = std::make_shared<class WireNet>();
+  }
+
+  return wn;
+}
+
+const QColor& Scene::backgroundColor() const
+{
+  return _backgroundColor;
+}
+
+void Scene::setBackgroundColor(const QColor& newBackgroundColor)
+{
+  if (_backgroundColor == newBackgroundColor)
+  {
+    return;
+  }
+
+  _backgroundColor = newBackgroundColor;
+  // Redraw
+  renderCachedBackground();
+  emit backgroundColorChanged(newBackgroundColor);
 }
 
 QList<QPointF> Scene::connectionPoints() const
@@ -1277,6 +1487,7 @@ bool Scene::addWire(const std::shared_ptr<Wire>& wire)
         return false;
     }
 
+     wire->set_manager(m_wire_manager.get());
     // Add wire to scene
     // Wires created by mouse interactions are already added to the scene in the Scene::mouseXxxEvent() calls. Prevent
     // adding an already added item to the scene
@@ -1303,5 +1514,4 @@ bool Scene::removeWire(const std::shared_ptr<Wire>& wire)
 
     return m_wire_manager->remove_wire(wire);
 }
-
 

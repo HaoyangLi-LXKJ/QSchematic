@@ -51,7 +51,8 @@ void View::keyPressEvent(QKeyEvent* event)
             return;
 
         case Qt::Key_0:
-            setZoomValue(1.0);
+            // setZoomValue(1.0);
+			_scaleFactor = 1.0;
             updateScale();
             return;
 
@@ -114,16 +115,16 @@ void View::wheelEvent(QWheelEvent* event)
     if (event->modifiers() & Qt::ControlModifier) {
 
         // Zoom in (clip)
-        if (event->angleDelta().y() > 0) {
+        if (event->angleDelta().y() > 0 && _scaleFactor < ZOOM_FACTOR_MAX) {
             _scaleFactor += ZOOM_FACTOR_STEPS;
         }
 
         // Zoom out (clip)
-        else if (event->angleDelta().y() < 0) {
+        else if (event->angleDelta().y() < 0 && _scaleFactor > ZOOM_FACTOR_MIN) {
             _scaleFactor -= ZOOM_FACTOR_STEPS;
         }
 
-        _scaleFactor = qBound(0.0, _scaleFactor, 1.0);
+        // _scaleFactor = qBound(0.0, _scaleFactor, 1.0);
 
         updateScale();
     }

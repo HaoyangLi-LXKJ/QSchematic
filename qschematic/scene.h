@@ -5,7 +5,7 @@
 #include "items/wire.h"
 #include "wire_system/manager.h"
 //#include "utils/itemscustodian.h"
-
+#include "qschematic_export.h"
 #include <gpds/serialize.hpp>
 #include <QGraphicsScene>
 #include <QUndoStack>
@@ -20,12 +20,12 @@ namespace QSchematic {
     class Connector;
     class WireNet;
 
-    class Scene :
-        public QGraphicsScene,
-        public gpds::serialize
-    {
-        Q_OBJECT
-        Q_DISABLE_COPY_MOVE(Scene)
+class QSCHEMATIC_EXPORT Scene :
+  public QGraphicsScene,
+  public gpds::serialize
+{
+  Q_OBJECT
+  Q_DISABLE_COPY_MOVE(Scene)
 
     public:
         enum Mode {
@@ -98,13 +98,28 @@ namespace QSchematic {
         void undo();
         void redo();
         QUndoStack* undoStack() const;
+        // The section below is added by PT for SLS features
+        const QColor& backgroundColor() const;
+        void setBackgroundColor(const QColor& newBackgroundColor);
 
+        const QColor& gridColor() const;
+        void setGridColor(const QColor& newGridColor);
+
+        QList<std::shared_ptr<Label>> labels() const;
+
+        QList<std::shared_ptr<Connector>> keepPointOnConnectors() const;
+
+        void setWireNetFactory(std::function<std::shared_ptr<WireNet>()> func);
+        std::shared_ptr<WireNet> createWireNet();
     signals:
         void modeChanged(int newMode);
         void isDirtyChanged(bool isDirty);
-        void itemAdded(std::shared_ptr<Item> item);
-        void itemRemoved(std::shared_ptr<Item> item);
+        void itemAdded(const std::shared_ptr<const Item> item);
+        void itemRemoved(const std::shared_ptr<const Item> item);
         void itemHighlighted(const std::shared_ptr<const Item>& item);
+        void backgroundColorChanged(QColor newColor);
+        void gridColorChanged(QColor newColor);
+        void rectChanged(int newRect);
 
     protected:
         Settings _settings;
@@ -119,19 +134,20 @@ namespace QSchematic {
         void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;
         void dropEvent(QGraphicsSceneDragDropEvent* event) override;
         void drawBackground(QPainter* painter, const QRectF& rect) override;
-
-        /* This gets called just before the item is actually being moved by moveBy. Subclasses may
-         * implement this to implement snapping to elements other than the grid
-         */
-        virtual QVector2D itemsMoveSnap(const std::shared_ptr<Item>& item, const QVector2D& moveBy) const;
-
         /**
          * Renders the background.
          *
          * @param rect The scene rectangle. This is guaranteed to be non-null & valid.
          */
-        [[nodiscard]]
-        virtual QPixmap renderBackground(const QRect& rect) const;
+//        [[nodiscard]]
+//        virtual QPixmap renderBackground(const QRect& rect) const;
+
+    protected:
+        Item* _highlightedItem;
+        /* This gets called just before the item is actually being moved by moveBy. Subclasses may
+         * implement this to implement snapping to elements other than the grid
+         */
+        virtual QVector2D itemsMoveSnap(const std::shared_ptr<Item>& item, const QVector2D& moveBy) const;
 
     private:
         void renderCachedBackground();
@@ -179,12 +195,18 @@ namespace QSchematic {
         bool _movingNodes;
         QPointF _lastMousePos;
         QMap<std::shared_ptr<Item>, QPointF> _initialItemPositions;
+        QList<std::shared_ptr<Connector>> _keepPointOnConnector;
         QPointF _initialCursorPosition;
         QUndoStack* _undoStack;
         std::shared_ptr<wire_system::manager> m_wire_manager;
-        Item* _highlightedItem;
         QTimer* _popupTimer;
         std::shared_ptr<QGraphicsProxyWidget> _popup;
+
+        // The section below is added by PT for SLS features
+        QColor _backgroundColor = Qt::white;
+        QColor _gridColor = Qt::gray;
+
+        std::optional<std::function<std::shared_ptr<WireNet>()>> _wireNetFactory;
 
     private slots:
         void updateNodeConnections(const Node* node) const;

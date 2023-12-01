@@ -10,7 +10,7 @@ namespace QSchematic
     class Scene;
     class Item;
 
-    class CommandItemAdd :
+    class QSCHEMATIC_EXPORT CommandItemAdd :
         public UndoCommand
     {
     public:

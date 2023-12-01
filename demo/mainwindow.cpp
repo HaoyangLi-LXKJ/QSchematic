@@ -36,7 +36,7 @@
 #include <sstream>
 
 
-#warning TEMPORARY
+// #warning TEMPORARY
 #include <qschematic/items/widget.h>
 #include <QDial>
 

@@ -2,7 +2,7 @@
 
 #include "../wire_system/line.h"
 #include "../wire_system/net.h"
-
+#include "qschematic_export.h"
 #include <gpds/serialize.hpp>
 #include <QObject>
 #include <QList>
@@ -22,7 +22,7 @@ namespace QSchematic {
     class Label;
     class Scene;
 
-    class WireNet :
+    class QSCHEMATIC_EXPORT WireNet :
         public QObject,
         public gpds::serialize,
         public wire_system::net

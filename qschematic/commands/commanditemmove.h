@@ -13,7 +13,7 @@ namespace QSchematic
 {
     class Item;
 
-    class CommandItemMove :
+    class QSCHEMATIC_EXPORT CommandItemMove :
         public UndoCommand
     {
     public:

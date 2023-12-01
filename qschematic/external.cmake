@@ -19,13 +19,13 @@ if (QSCHEMATIC_DEPENDENCY_GPDS_DOWNLOAD)
 
         # Create alias libraries
         add_library(gpds::gpds-static ALIAS gpds-static)
-        add_library(gpds::gpds-shared ALIAS gpds-shared)
+#        add_library(gpds::gpds-shared ALIAS gpds-shared)
     endif()
 else()
-    find_package(
-        gpds
-        REQUIRED
-    )
+#    find_package(
+#        gpds
+#        REQUIRED
+#    )
 endif()
 
 

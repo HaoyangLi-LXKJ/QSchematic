@@ -10,7 +10,7 @@ namespace QSchematic
 
     class Label;
 
-    class CommandWirenetRename :
+    class QSCHEMATIC_EXPORT CommandWirenetRename :
         public UndoCommand
     {
     public:

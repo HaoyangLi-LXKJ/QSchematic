@@ -16,11 +16,15 @@ set(SOURCES_PRIVATE
     commands/commandrectitemrotate.cpp
     commands/commandwirenetrename.cpp
     commands/commandwirepointmove.cpp
+    commands/FlexLabelCommands.cpp
+    commands/commandnoderesize.cpp
+    commands/commandnoderotate.cpp
     items/connector.cpp
     items/item.cpp
     items/itemfactory.cpp
     items/itemmimedata.cpp
     items/label.cpp
+    items/FlexLabel.cpp
     items/node.cpp
     items/rectitem.cpp
     items/splinewire.cpp
@@ -37,6 +41,9 @@ set(SOURCES_PRIVATE
     settings.cpp
     utils.cpp
     view.cpp
+
+    #Added by PT
+    commands/commandlabelrotate.cpp
 )
 
 # List of header files
@@ -52,12 +59,16 @@ set(HEADERS_PUBLIC
     commands/commands.h
     commands/commandwirenetrename.h
     commands/commandwirepointmove.h
+    commands/FlexLabelCommands.h
+    commands/commandnoderesize.h
+    commands/commandnoderotate.h
     items/itemfunctions.h
     items/connector.h
     items/item.h
     items/itemfactory.h
     items/itemmimedata.h
     items/label.h
+    items/FlexLabel.h
     items/node.h
     items/rectitem.h
     items/splinewire.h
@@ -80,15 +91,17 @@ set(HEADERS_PUBLIC
     types.h
     utils.h
     view.h
+    #Added by PT
+    commands/commandlabelrotate.h
 )
 
 # Add the wire system
 add_subdirectory(wire_system)
-
+add_subdirectory(gpds)
 # Setup target names
 set(TARGET_BASE_NAME "qschematic")
 set(TARGET_STATIC    ${TARGET_BASE_NAME}-static)
-set(TARGET_SHARED    ${TARGET_BASE_NAME}-shared)
+# set(TARGET_SHARED    ${TARGET_BASE_NAME}-shared)
 
 # This function sets stuff up common to all targets
 function(setup_target_common target)
@@ -107,6 +120,7 @@ function(setup_target_common target)
     target_include_directories(
         ${target}
         PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>      # For qschematic_export.h
             $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/..>
             $<INSTALL_INTERFACE:..>
     )
@@ -135,6 +149,18 @@ function(setup_target_common target)
             VERSION ${PROJECT_VERSION}
             POSITION_INDEPENDENT_CODE 1
     )
+
+  include(GenerateExportHeader)
+  generate_export_header(
+      ${target}
+      BASE_NAME qschematic
+      DEPRECATED_MACRO_NAME "QSCHEMATIC_DEPRECATED"
+      NO_DEPRECATED_MACRO_NAME "QSCHEMATIC_NO_DEPRECATED"
+      EXPORT_MACRO_NAME "QSCHEMATIC_EXPORT"
+      NO_EXPORT_MACRO_NAME "QSCHEMATIC_NO_EXPORT"
+      STATIC_DEFINE "QSCHEMATIC_STATIC_DEFINE"
+      DEFINE_NO_DEPRECATED
+  )
 endfunction()
 
 
@@ -142,8 +168,8 @@ endfunction()
 # Shared library                                                               #
 ################################################################################
 
-add_library(${TARGET_SHARED} SHARED)
-setup_target_common(${TARGET_SHARED})
+# add_library(${TARGET_SHARED} SHARED)
+# setup_target_common(${TARGET_SHARED})
 
 
 ################################################################################
@@ -175,15 +201,21 @@ foreach( file ${HEADERS_PUBLIC} )
     install( FILES ${file} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/qschematic/${dir} )
 endforeach()
 
+# Install export header
+install(
+    FILES ${PROJECT_BINARY_DIR}/qschematic_export.h
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/qschematic
+)
+
 # Targets
 install(
     TARGETS
         ${TARGET_STATIC}
-        ${TARGET_SHARED}
+        # ${TARGET_SHARED}
     EXPORT qschematic-targets
     LIBRARY
         DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        COMPONENT lib
+        COMPONENT lib5
     ARCHIVE
         DESTINATION ${CMAKE_INSTALL_LIBDIR}
         COMPONENT lib

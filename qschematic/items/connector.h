@@ -2,18 +2,19 @@
 
 #include "item.h"
 #include "../wire_system/connectable.h"
+#include "qschematic_export.h"
+#include "FlexLabel.h"
 
 namespace QSchematic {
 
     class Label;
     class Wire;
 
-    class Connector :
-        public Item,
-        public wire_system::connectable
-    {
-        Q_OBJECT
-        Q_DISABLE_COPY_MOVE(Connector)
+  class QSCHEMATIC_EXPORT Connector : public Item,
+                                      public wire_system::connectable
+  {
+    Q_OBJECT
+    Q_DISABLE_COPY_MOVE(Connector)
 
     public:
         enum SnapPolicy {
@@ -40,18 +41,22 @@ namespace QSchematic {
         Direction textDirection() const;
         void update() override;
 
-        QPointF connectionPoint() const;
-        std::shared_ptr<Label> label() const;
-        void alignLabel();
-        QRectF boundingRect() const override;
-        void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) override;
+    QPointF connectionPoint() const;
+    std::shared_ptr<Graphics::FlexLabel> label() const;
+    void alignLabel();
+    QRectF boundingRect() const override;
+    QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value) override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
+
+        void setXStickToRatio();
+        void setYStickToRatio();
 
         // Connectable
         QPointF position() const override;
 
     protected:
         void copyAttributes(Connector& dest) const;
-        QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value) override;
+        // QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value) override;
 
     private:
         void calculateSymbolRect();
@@ -63,7 +68,12 @@ namespace QSchematic {
         QRectF _symbolRect;
         bool _forceTextDirection;
         Direction _textDirection;
-        std::shared_ptr<Label> _label;
+        std::shared_ptr<Graphics::FlexLabel> _label;
+
+        bool _rememberRatio = true;
+        // Position ratio to parent
+        qreal _xratio = 0;
+        qreal _yratio = 0;
     };
 
 }

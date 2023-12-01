@@ -3,12 +3,13 @@
 #include <QMimeData>
 
 #include <memory>
+#include "qschematic_export.h"
 
 namespace QSchematic
 {
     const QString MIME_TYPE_NODE = "qschematic/node";
 
-    class ItemMimeData :
+    class QSCHEMATIC_EXPORT ItemMimeData :
         public QMimeData
     {
         Q_OBJECT
