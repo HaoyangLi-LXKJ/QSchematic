@@ -4,6 +4,7 @@
 #include "wirenet.h"
 #include "../wire_system/point.h"
 #include "../wire_system/wire.h"
+#include "qschematic_export.h"
 
 #include <QAction>
 
@@ -15,7 +16,7 @@ namespace QSchematic {
      * IMPORTANT NOTE: The points coordinates are RELATIVE and in SCENE COORDINATES.
      *                 Wires must be movable so we can move entire groups of stuff.
      */
-    class Wire :
+    class QSCHEMATIC_EXPORT Wire :
         public Item,
         public wire_system::wire
     {
@@ -41,6 +42,7 @@ namespace QSchematic {
         QVector<QPointF> pointsRelative() const;
         QVector<QPointF> pointsAbsolute() const;
         void move_point_to(int index, const QPointF& moveTo) override;
+        void move_point_by(int index, const QVector2D& moveBy) override;
         bool movingWirePoint() const;
         void rename_net();
 

@@ -20,7 +20,23 @@ void wire::set_manager(wire_system::manager* manager)
 
 QVector<point> wire::points() const
 {
-    return m_points;
+    // defalut data
+    point def{0,0};
+    // filter abnormal data
+    QVector<point> ret;
+    for(auto p : m_points)
+    {
+      qreal x = p.x();
+      qreal y = p.y();
+      if(qIsNaN(x) || qIsInf(x) || qIsNaN(y) || qIsInf(y))
+      {
+        ret.append(def);
+      }
+      else {
+        ret.append(p);
+      }
+    }
+    return ret;
 }
 
 int wire::points_count() const
@@ -350,7 +366,7 @@ void wire::move_point_by(int index, const QVector2D& moveBy)
         // this is unnecessary as we're just moving one of the two points.
         if (!line.is_null() && (moveVertically || moveHorizontally)) {
             qreal lineLength = line.lenght();
-            QPointF p;
+           QPointF p;
 
             // The line is horizontal
             if (line.is_horizontal()) {
@@ -496,6 +512,7 @@ void wire::move(const QVector2D& movedBy)
     // Move junctions
     for (const auto& index : junctions()) {
         const auto& junction = points().at(index);
+        if(net())
         for (const auto& wire : net()->wires()) {
             if (!wire->connected_wires().contains(this)) {
                 continue;
@@ -580,7 +597,7 @@ void wire::simplify()
 
 bool wire::connect_wire(wire* wire)
 {
-    if (m_connectedWires.contains(wire)) {
+    if (m_connectedWires.contains(wire) || wire->connected_wires().contains(this)) {
         return false;
     }
     m_connectedWires.append(wire);

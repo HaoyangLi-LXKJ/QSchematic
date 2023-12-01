@@ -18,6 +18,7 @@ const qreal PEN_WIDTH          = 1.5;
 const int TEXT_PADDING         = 15;
 
 using namespace QSchematic;
+using namespace Graphics;
 
 Connector::Connector(int type, const QPoint& gridPoint, const QString& text, QGraphicsItem* parent) :
     Item(type, parent),
@@ -26,7 +27,7 @@ Connector::Connector(int type, const QPoint& gridPoint, const QString& text, QGr
     _textDirection(Direction::LeftToRight)
 {
     // Label
-    _label = std::make_shared<Label>();
+    _label = std::make_shared<FlexLabel>();
     _label->setParentItem(this);
     _label->setText(text);
 
@@ -46,6 +47,12 @@ Connector::Connector(int type, const QPoint& gridPoint, const QString& text, QGr
     setGridPos(gridPoint);
     calculateSymbolRect();
     calculateTextDirection();
+  if (parent)
+  {
+    const Node* parentNode = qgraphicsitem_cast<const Node*>(parent);
+    _xratio = x() / parentNode->size().width();
+    _yratio = y() / parentNode->size().height();
+  }
 }
 
 Connector::~Connector()
@@ -96,7 +103,7 @@ void Connector::copyAttributes(Connector& dest) const
     Item::copyAttributes(dest);
 
     // Label
-    dest._label = std::dynamic_pointer_cast<QSchematic::Label>(_label->deepCopy());
+    dest._label = std::dynamic_pointer_cast<FlexLabel>(_label->deepCopy());
     dest._label->setParentItem(&dest);
 
     // Attributes
@@ -104,6 +111,8 @@ void Connector::copyAttributes(Connector& dest) const
     dest._symbolRect = _symbolRect;
     dest._forceTextDirection = _forceTextDirection;
     dest._textDirection = _textDirection;
+    dest._xratio = _xratio;
+    dest._yratio = _yratio;
 }
 
 void Connector::setSnapPolicy(Connector::SnapPolicy policy)
@@ -188,8 +197,22 @@ QVariant Connector::itemChange(QGraphicsItem::GraphicsItemChange change, const Q
         }
         QRectF parentNodeSizeRect(0, 0, parentNode->size().width(), parentNode->size().height());
 
-        // Honor snap policy
-        switch (_snapPolicy) {
+      // Try to remember the ratios after position change
+      if (_rememberRatio)
+      {
+        _xratio = proposedPos.x() / parentNode->size().width();
+        _yratio = proposedPos.y() / parentNode->size().height();
+      }
+      else
+      {
+        // After every movement without remembering the ratio, we try to remember the ratio next time
+        // Use this with setXStickToRatio/setYStickToRatio
+        _rememberRatio = true;
+      }
+
+      // Honor snap policy
+      switch (_snapPolicy)
+      {
         case Anywhere:
             break;
 
@@ -211,13 +234,27 @@ QVariant Connector::itemChange(QGraphicsItem::GraphicsItemChange change, const Q
     }
 
     case QGraphicsItem::ItemPositionHasChanged:
-    case QGraphicsItem::ItemParentHasChanged:
     {
-        calculateTextDirection();
-        alignLabel();
-        break;
+      calculateTextDirection();
+      alignLabel();
+      break;
     }
 
+    case QGraphicsItem::ItemParentHasChanged:
+    {
+      calculateTextDirection();
+      alignLabel();
+      // Retrieve parent Node's size rect
+      const Node* parentNode = qgraphicsitem_cast<const Node*>(parentItem());
+
+      if (parentNode)
+      {
+        _xratio = x() / parentNode->size().width();
+        _yratio = y() / parentNode->size().height();
+      }
+
+      break;
+    }
     case QGraphicsItem::ItemVisibleHasChanged:
     {
         if (!isVisible())
@@ -225,11 +262,12 @@ QVariant Connector::itemChange(QGraphicsItem::GraphicsItemChange change, const Q
         break;
     }
 
-    case QGraphicsItem::ItemSceneChange:
+    /*case QGraphicsItem::ItemSceneChange:
     {
         disconnect_all_wires();
         break;
     }
+	*/
 
     default:
         break;
@@ -267,7 +305,35 @@ void Connector::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
     painter->drawRoundedRect(_symbolRect, _settings.gridSize/4, _settings.gridSize/4);
 }
 
-std::shared_ptr<Label> Connector::label() const
+void Connector::setXStickToRatio()
+{
+  // Retrieve parent Node's size rect
+  const Node* parentNode = qgraphicsitem_cast<const Node*>(parentItem());
+
+  if (!parentNode)
+  {
+    return;
+  }
+
+  _rememberRatio = false;
+  setX(_xratio * parentNode->size().width());
+}
+
+void Connector::setYStickToRatio()
+{
+  // Retrieve parent Node's size rect
+  const Node* parentNode = qgraphicsitem_cast<const Node*>(parentItem());
+
+  if (!parentNode)
+  {
+    return;
+  }
+
+  _rememberRatio = false;
+  setY(_yratio * parentNode->size().height());
+}
+
+std::shared_ptr<Graphics::FlexLabel> Connector::label() const
 {
     return _label;
 }

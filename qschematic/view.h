@@ -1,12 +1,12 @@
 #pragma once
 
 #include "scene.h"
-
+#include "qschematic_export.h"
 #include <QGraphicsView>
 
 namespace QSchematic {
 
-    class View :
+    class QSCHEMATIC_EXPORT View :
         public QGraphicsView
     {
         Q_OBJECT

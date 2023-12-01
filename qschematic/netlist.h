@@ -88,8 +88,18 @@ namespace QSchematic
             return object;
         }
 
-        std::forward_list<TNet>
-        netsWithNode(const TNode node) const
+//        void set( std::vector<TNode>&& nodes, std::vector<TNet>&& nets )
+//        {
+//            _nodes = std::move( nodes );
+//            _nets = std::move( nets );
+//        }
+
+//        std::vector<TNet> nets() const
+//        {
+//            return nets;
+//        }
+
+        std::forward_list<TNet> netsWithNode(const TNode node) const
         {
             // Sanity check
             if (!node)
@@ -126,5 +136,12 @@ namespace QSchematic
 
             return std::nullopt;
         }
+
+//        std::vector<TNode> nodes() const
+//        {
+//            return nodes;
+//        }
+
+    private:
     };
 }

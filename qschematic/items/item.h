@@ -3,7 +3,7 @@
 #include "itemfunctions.h"
 #include "../types.h"
 #include "../settings.h"
-
+#include "qschematic_export.h"
 #include <gpds/serialize.hpp>
 #include <QDebug>
 #include <QGraphicsObject>
@@ -14,9 +14,11 @@
 namespace QSchematic
 {
     class Scene;
+	
+	class Item;
 
-    class Item :
-        public QGraphicsObject,
+    class QSCHEMATIC_EXPORT Item :
+	        public QGraphicsObject,
         public gpds::serialize,
         public std::enable_shared_from_this<Item>
     {
@@ -30,6 +32,7 @@ namespace QSchematic
             WireRoundedCornersType,
             ConnectorType,
             LabelType,
+            FlexLabelType,
             SplineWireType,
 
             QSchematicItemUserType = QGraphicsItem::UserType + 100
