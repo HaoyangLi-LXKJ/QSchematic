@@ -2,16 +2,21 @@
 
 #include <qschematic/items/label.h>
 
-#include "ItemTypes.h"
+#include <QInputDialog>
+
+#include "item.h"
 
 namespace Graphics
 {
+struct InputInfo;
+
 class FlexLabel : public QSchematic::Label
 {
   Q_OBJECT
   Q_DISABLE_COPY(FlexLabel)
 public:
-  explicit FlexLabel(int type = Graphics::ItemType::FlexLabelType, QGraphicsItem* parent = nullptr);
+
+  explicit FlexLabel(int type = ItemType::FlexLabelType, QGraphicsItem* parent = nullptr);
   virtual ~FlexLabel() override;
 
   virtual gpds::container to_container() const override;
@@ -22,11 +27,44 @@ public:
   void changeFontSize(int size);
 
   void changeFontColor(QColor color);
-  static const int MAX_FONT_SIZE = 200;
+  static const int MAX_FONT_SIZE = 400;
+
+  static bool globalMenuEnable();
+  static void setGlobalMenuEnable(bool newGlobalMenuEnable);
+
+  static const QString &changeLabelTextText();
+  static void setChangeLabelTextText(const QString &newChangeLabelTextText);
+  static const QString &changeLabelSizeText();
+  static void setChangeLabelSizeText(const QString &newChangeLabelSizeText);
+
+  static InputInfo& changeLabelTextInputInfo();
+  static InputInfo& changeLabelSizeInputInfo();
 
 protected:
   void copyAttributes(FlexLabel& dest) const;
 
 private:
+  static bool _globalMenuEnable;
+  static QString _changeLabelTextText;
+  static QString _changeLabelSizeText;
+  static InputInfo _changeLabelTextInputInfo;
+  static InputInfo _changeLabelSizeInputInfo;
+};
+
+struct InputInfo
+{
+  QString windowTitle;
+  QString labelText;
+  QString okButtonText;
+  QString cancelButtonText;
+
+  InputInfo(QString windowTitle,
+            QString labelText,
+            QString okButtonText,
+            QString cancelButtonText)
+      : windowTitle(windowTitle)
+      , labelText(labelText)
+      , okButtonText(okButtonText)
+      , cancelButtonText(cancelButtonText) {}
 };
 }
