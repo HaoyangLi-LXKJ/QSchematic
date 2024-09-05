@@ -2,10 +2,14 @@
 
 #include <qschematic/items/label.h>
 
+#include <QInputDialog>
+
 #include "item.h"
 
 namespace Graphics
 {
+struct InputInfo;
+
 class FlexLabel : public QSchematic::Label
 {
   Q_OBJECT
@@ -33,12 +37,34 @@ public:
   static const QString &changeLabelSizeText();
   static void setChangeLabelSizeText(const QString &newChangeLabelSizeText);
 
-  protected:
+  static InputInfo& changeLabelTextInputInfo();
+  static InputInfo& changeLabelSizeInputInfo();
+
+protected:
   void copyAttributes(FlexLabel& dest) const;
 
 private:
   static bool _globalMenuEnable;
   static QString _changeLabelTextText;
   static QString _changeLabelSizeText;
+  static InputInfo _changeLabelTextInputInfo;
+  static InputInfo _changeLabelSizeInputInfo;
+};
+
+struct InputInfo
+{
+  QString windowTitle;
+  QString labelText;
+  QString okButtonText;
+  QString cancelButtonText;
+
+  InputInfo(QString windowTitle,
+            QString labelText,
+            QString okButtonText,
+            QString cancelButtonText)
+      : windowTitle(windowTitle)
+      , labelText(labelText)
+      , okButtonText(okButtonText)
+      , cancelButtonText(cancelButtonText) {}
 };
 }
